@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Search Admin Console — Demo</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-page:#EEECEA;--bg-card:#FFFFFF;--bg-otto-panel:#F2F1EE;--bg-otto-header:#1B1B19;--bg-nav:#1C1C1A;--bg-nav-hover:#2A2A28;--bg-input:#FFFFFF;--bg-tag-gray:#F0EFEB;--green-brand:#00C950;--green-brand-dark:#00A843;--green-text:#186A3B;--green-bg:#E8F9EF;--green-running-bg:#DCFCE7;--amber:#D97706;--amber-bg:#FEF3C7;--amber-text:#92400E;--red:#DC2626;--red-bg:#FEE2E2;--red-text:#7F1D1D;--blue:#1D4ED8;--blue-bg:#EFF6FF;--blue-text:#1E3A5F;--text-primary:#1A1A18;--text-secondary:#6B7280;--text-muted:#9CA3AF;--text-link:#186A3B;--border-light:#E5E3DF;--border-medium:#D0CEC9;--border-otto-input:#E0DEDB;--shadow-card:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);--shadow-card-lg:0 4px 12px rgba(0,0,0,0.08);--shadow-otto:2px 0 8px rgba(0,0,0,0.06);--radius-sm:6px;--radius-md:10px;--radius-lg:12px;--radius-pill:999px;--radius-input:8px;--nav-width:64px;--otto-width:40vw}
+html,body{height:100%;margin:0;padding:0}
+*,*::before,*::after{box-sizing:border-box}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:13px;line-height:1.55;color:var(--text-primary);background:var(--bg-page)}
+:focus-visible{outline:2px solid var(--green-brand);outline-offset:2px}
+:focus:not(:focus-visible){outline:none}
+button{font-family:inherit;border:none;background:none;padding:0;cursor:pointer}
+input{font-family:inherit}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes ottoPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+@keyframes progressPulse{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes pulseHighlight{0%{background:rgba(0,201,80,.15)}100%{background:transparent}}
+.left-nav{width:var(--nav-width);min-width:var(--nav-width);background:var(--bg-nav);display:flex;flex-direction:column;align-items:center;flex-shrink:0;height:100%;padding:12px 0}
+.nav-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);transition:background .15s,color .15s;border-radius:50%;margin:2px 0}
+.nav-icon:hover{color:rgba(255,255,255,1)}
+.nav-icon.active{background:#E5E3DF;color:var(--text-primary)}
+.nav-icon svg{pointer-events:none}
+.nav-logo{width:48px;height:48px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.nav-divider{width:32px;height:1px;background:rgba(255,255,255,.15);margin:12px 0}
+.nav-spacer{flex:1}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:#5B21B6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;margin:8px 0 4px}
+.otto-panel{width:100%;height:100%;display:flex;flex-direction:column;background:var(--bg-otto-panel);overflow:hidden}
+.otto-header{height:40px;background:var(--bg-card);display:flex;align-items:center;padding:0 12px;gap:6px;flex-shrink:0;border-bottom:1px solid var(--border-light)}
+.otto-header-title{font-size:13px;font-weight:500;color:var(--text-primary);flex:1}
+.otto-header-icon{color:var(--green-brand);display:flex;align-items:center}
+.otto-header-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);border-radius:6px;cursor:pointer}
+.otto-header-btn:hover{color:var(--text-secondary);background:var(--bg-page)}
+.otto-steps-row{padding:6px 12px;display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--border-light);background:var(--bg-card)}
+.otto-steps-label{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.otto-conversation{flex:1;overflow-y:auto;padding:20px 14px;display:flex;flex-direction:column;gap:16px;background:var(--bg-otto-panel)}
+.otto-message{display:flex;flex-direction:column;gap:8px;animation:fadeInUp .15s ease-out}
+.otto-message.user-message{align-items:flex-end}
+.otto-message.user-message .otto-message-content{background:var(--green-brand);color:#fff;border-radius:12px 12px 4px 12px;padding:10px 14px;max-width:85%}
+.otto-message-content{font-size:13px;color:var(--text-primary);line-height:1.6}
+.otto-option{display:block;width:100%;background:#EBEBEA;border:1px solid var(--border-light);border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:var(--text-primary);cursor:pointer;text-align:left;transition:background .12s;margin-top:4px}
+.otto-option:hover{background:#E0DFDC}
+.otto-option.selected{background:#E8F9EF;border-color:var(--green-brand);color:var(--green-text);pointer-events:none}
+.otto-option:active{transform:scale(.98)}
+.otto-cta-btn{background:#2D2D2B;color:#fff;border:none;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px;display:inline-block}
+.otto-cta-btn:hover{background:#3D3D3B}
+.otto-input-bar{background:var(--bg-card);border-top:1px solid var(--border-light);padding:8px 12px;flex-shrink:0}
+.otto-input-row{display:flex;align-items:center;gap:8px;background:var(--bg-otto-panel);border:1px solid var(--border-otto-input);border-radius:var(--radius-pill);padding:8px 10px 8px 14px}
+.otto-input-field{flex:1;font-size:13px;color:var(--text-secondary);background:transparent;border:none;outline:none}
+.otto-input-mic{width:32px;height:32px;border-radius:50%;background:var(--green-brand);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;flex-shrink:0}
+.otto-input-mic:hover{background:var(--green-brand-dark)}
+.otto-disclaimer{font-size:10px;color:var(--text-muted);text-align:center;margin-top:4px}
+.otto-loading{display:flex;gap:4px;align-items:center;padding:4px 0}
+.otto-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:ottoPulse 1.2s ease-in-out infinite}
+.otto-dot:nth-child(2){animation-delay:.2s}
+.otto-dot:nth-child(3){animation-delay:.4s}
+.otto-info-card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:8px;padding:12px;font-size:12px;margin-top:4px}
+.otto-info-card-title{font-weight:600;font-size:13px;margin-bottom:8px;color:var(--text-primary)}
+.otto-info-card-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--text-secondary)}
+.otto-info-card-row span:last-child{color:var(--text-primary);font-weight:500}
+.otto-filter-card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-top:4px}
+.otto-filter-title{font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:8px}
+.otto-filter-pills{display:flex;gap:6px;flex-wrap:wrap}
+.otto-filter-pill{background:var(--bg-page);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:4px 10px;font-size:12px;color:var(--text-primary)}
+.otto-source-input{background:var(--bg-card);border:1px solid var(--border-light);border-radius:8px;padding:12px;margin-top:4px}
+.otto-source-input label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:6px}
+.otto-source-input input{width:100%;border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;color:var(--text-primary);background:var(--bg-card)}
+.otto-source-input input:focus{border-color:var(--green-brand);outline:none}
+.otto-save-btn{background:#1B1B19;color:#fff;border:none;border-radius:var(--radius-md);padding:10px 16px;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px;display:block;width:100%;text-align:center}
+.otto-save-btn:hover{background:#2D2D2B}
+.main-content{flex:1;overflow-y:auto;min-width:0;display:flex;flex-direction:column}
+.main-content.otto-open{flex:0 0 68%}
+.otto-panel-wrapper{display:none;position:relative;width:32%;min-width:340px;border-right:1px solid var(--border-light);background:var(--bg-otto-panel);z-index:1000;flex-shrink:0;height:100%}
+.otto-panel-wrapper.open{display:flex;animation:fadeIn .2s ease-out}
+@media(max-width:1100px){
+  .main-content.otto-open{flex:1}
+  .otto-panel-wrapper{position:fixed;right:16px;top:16px;bottom:56px;width:var(--otto-width);max-width:520px;min-width:320px;border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,.18);border:1px solid var(--border-light)}
+}
+.top-bar{height:40px;display:flex;align-items:center;padding:0 20px;gap:10px;background:var(--bg-card);border-bottom:1px solid var(--border-light);flex-shrink:0}
+.top-bar-title{font-size:13px;font-weight:500;color:var(--text-primary)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+.breadcrumb-sep{color:var(--text-muted)}
+.breadcrumb-active{color:var(--text-primary);font-weight:500}
+.breadcrumb-link{cursor:pointer}
+.breadcrumb-link:hover{color:var(--text-primary)}
+.status-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--radius-pill)}
+.status-pill.healthy,.status-pill.running{background:var(--green-running-bg);color:var(--green-text)}
+.status-pill.attention{background:var(--amber-bg);color:var(--amber-text)}
+.status-pill.error{background:var(--red-bg);color:var(--red-text)}
+.status-pill.in-progress{background:#EFF6FF;color:#1D4ED8}
+.status-pill.configured{background:#E8F9EF;color:var(--green-text)}
+.status-pill.not-configured{background:#F1F5F9;color:#475569}
+.status-pill.info{background:#EFF6FF;color:#1D4ED8}
+.status-pill.active-status{background:var(--green-running-bg);color:var(--green-text)}
+.status-pill.onboarding{background:#E8F9EF;color:var(--green-text)}
+.status-pill.not-available{background:#F1F5F9;color:#64748B}
+.status-pill.not-configured{background:#F1F5F9;color:#64748B}
+.card{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-card)}
+.card-clickable{cursor:pointer;transition:box-shadow .15s}
+.card-clickable:hover{box-shadow:var(--shadow-card-lg)}
+.toggle{width:40px;height:22px;border-radius:11px;background:#D1D5DB;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green-brand)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+.progress-bar{width:80px;height:6px;background:#E5E3DF;border-radius:3px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:3px;background:var(--green-brand)}
+.progress-bar-fill.in-progress{background:#1D4ED8;animation:progressPulse 2s ease-in-out infinite}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-size:11px;font-weight:500;color:var(--text-secondary);padding:8px 12px;border-bottom:1px solid var(--border-light);background:var(--bg-page)}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:13px;vertical-align:middle}
+.data-table tr:hover td{background:#F7F6F3}
+.new-row-highlight{animation:pulseHighlight 1.5s ease-out}
+.demo-bar{position:fixed;bottom:0;left:0;right:0;min-height:40px;background:rgba(15,15,15,.9);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;z-index:9999;padding:6px 20px}
+.demo-bar-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.7);margin-right:8px}
+.demo-bar-btn{font-size:11px;color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.25);border-radius:var(--radius-sm);padding:4px 12px;cursor:pointer;background:transparent;transition:all .15s}
+.demo-bar-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.4)}
+.demo-bar-btn.active{background:var(--green-brand);border-color:var(--green-brand);color:#fff}
+.demo-bar-btn.reset{border-color:rgba(255,100,100,.4);color:rgba(255,150,150,.9)}
+.demo-bar-btn.reset:hover{background:rgba(255,50,50,.15)}
+.page-content{padding:24px;padding-bottom:60px;flex:1}
+.screen-enter{animation:fadeInUp .2s ease-out}
+.ep-detail-screen{display:flex;flex-direction:column;height:100%}
+.ep-detail-screen .page-content{flex:1;overflow:auto}
+.ep-detail-screen .page-content.ep-review-page{display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
+.ep-detail-screen .page-content.ep-review-page > .sp-layout{flex:1}
+.landing-card{padding:24px;margin-bottom:12px}
+.landing-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.landing-card-title-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.landing-card-subtitle{font-size:13px;color:var(--text-secondary);margin-top:4px}
+.landing-health-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-light)}
+.landing-health-row:last-child{border-bottom:none}
+.landing-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;grid-template-areas:"sys config" "sys external";gap:16px;align-items:stretch}
+.landing-grid .landing-card{margin-bottom:0}
+.landing-grid-sys{grid-area:sys}
+.landing-grid-mid{grid-area:config}
+.landing-grid-mid + .landing-grid-mid{grid-area:external}
+.landing-banner{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius-lg);box-shadow:var(--shadow-card);padding:28px 48px 28px 28px;margin-bottom:20px;position:relative;width:100%}
+.landing-banner-close{position:absolute;top:18px;right:18px;color:var(--text-muted);cursor:pointer}
+.landing-banner-close:hover{color:var(--text-primary)}
+.landing-banner-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.landing-banner-title{font-size:24px;font-weight:600;color:var(--text-primary)}
+.landing-banner-desc{font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:18px}
+.landing-step-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.landing-step-pill{display:flex;align-items:center;gap:6px;background:var(--bg-tag-gray);border:1px solid var(--border-light);border-radius:var(--radius-pill);padding:6px 14px;font-size:12px;color:var(--text-primary);font-weight:500}
+.landing-step-pill.done{background:#E8F9EF;color:var(--green-text);border-color:var(--green-brand)}
+.landing-step-pill.done::before{content:'✓';display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--green-brand);color:#fff;font-size:10px}
+.landing-step-pill.pending::before{content:'';display:inline-flex;width:8px;height:8px;border-radius:50%;background:var(--text-muted);margin-right:2px}
+.landing-banner-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.landing-banner-btn{border-radius:var(--radius-md);padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer}
+.landing-banner-btn.primary{background:#1B1B19;color:#fff}
+.landing-banner-btn.primary:hover{background:#2D2D2B}
+.landing-banner-btn.ai{background:var(--green-brand);color:#fff;display:flex;align-items:center;gap:6px}
+.landing-banner-btn.ai:hover{background:var(--green-brand-dark)}
+.landing-banner-btn.ghost{background:var(--bg-tag-gray);color:var(--text-primary);border:1px solid var(--border-light)}
+.landing-resources-horizontal{margin-top:32px;display:flex;justify-content:center}
+.landing-resource-list{display:flex;gap:32px;flex-wrap:wrap;justify-content:center}
+.landing-resource-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-secondary);cursor:pointer}
+.landing-resource-item:hover{color:var(--text-primary)}
+.landing-resource-icon{width:28px;height:28px;border-radius:6px;background:var(--bg-tag-gray);display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.app-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.app-card{padding:20px;cursor:pointer;border-radius:var(--radius-lg)}
+.app-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.app-card-icon{width:44px;height:44px;border-radius:var(--radius-md);border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+.app-card-icon svg{width:24px;height:24px}
+.app-card-status{display:flex;align-items:center;gap:8px}
+.app-card-name{font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:12px}
+.app-card-meta-row{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.app-card-meta-row svg{color:var(--text-muted)}
+.ep-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.ep-title{font-size:24px;font-weight:600;color:var(--text-primary)}
+.ep-modified{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:4px}
+.ep-open-btn{font-size:12px;color:var(--text-primary);border:1px solid var(--border-medium);border-radius:var(--radius-sm);padding:5px 12px;cursor:pointer;display:flex;align-items:center;gap:4px;background:var(--bg-card)}
+.ep-open-btn:hover{background:var(--bg-page)}
+.ep-tabs{display:flex;gap:0;border-bottom:1px solid var(--border-light);margin-bottom:20px}
+.ep-tab{padding:10px 16px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.ep-tab:hover{color:var(--text-primary)}
+.ep-tab.active{color:var(--text-primary);font-weight:500;border-bottom-color:var(--text-primary)}
+.ep-sources-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:8px}
+.ep-sources-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+.ep-sources-count{background:var(--bg-page);border-radius:var(--radius-pill);padding:1px 8px;font-size:11px;font-weight:500;color:var(--text-secondary)}
+.ep-sources-actions{display:flex;align-items:center;gap:12px}
+.ep-add-source-btn{background:#1B1B19;color:#fff;border-radius:var(--radius-sm);padding:7px 14px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer}
+.ep-add-source-btn:hover{background:#2D2D2B}
+.ep-sources-desc{font-size:13px;color:var(--text-secondary);margin-bottom:16px}
+.ep-pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 0;font-size:12px;color:var(--text-secondary)}
+.edit-interface-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.edit-interface-card{padding:20px}
+.edit-interface-tabs{display:flex;gap:16px;border-bottom:1px solid var(--border-light);margin:-20px -20px 16px -20px;padding:0 20px}
+.edit-interface-tab{padding:12px 0;font-size:13px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent}
+.edit-interface-tab.active{color:var(--text-primary);font-weight:500;border-bottom-color:var(--text-primary)}
+.edit-filter-list{padding-bottom:8px}
+.edit-filter-header{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;padding:0 0 8px 0}
+.edit-filter-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border-light)}
+.edit-filter-item:last-child{border-bottom:none}
+.edit-add-filter-btn{margin-top:16px;background:#1B1B19;color:#fff;border-radius:var(--radius-md);padding:8px 14px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;cursor:pointer;border:none}
+.edit-add-filter-btn:hover{background:#2D2D2B}
+.edit-template-table{padding-bottom:8px}
+.edit-template-header{display:grid;grid-template-columns:1.2fr 1fr 1fr 80px;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;padding:0 0 10px 0}
+.edit-template-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 80px;align-items:center;padding:12px 0;border-bottom:1px solid var(--border-light);font-size:13px;color:var(--text-primary)}
+.edit-template-row:last-child{border-bottom:none}
+.edit-template-applies{font-size:12px;color:var(--blue)}
+.edit-template-cond{font-size:12px;color:var(--text-primary);background:var(--bg-tag-gray);border-radius:var(--radius-pill);padding:3px 8px;width:fit-content}
+.edit-preview-card{padding:20px}
+.edit-preview-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.edit-preview-tab{font-size:11px;padding:5px 10px;border-radius:var(--radius-pill);color:var(--text-secondary);background:var(--bg-tag-gray);cursor:pointer}
+.edit-preview-tab.active{background:var(--green-brand);color:#fff}
+.edit-preview-frame{border:1px solid var(--border-light);border-radius:var(--radius-md);padding:16px;background:var(--bg-card);margin-bottom:16px;min-height:200px}
+.edit-preview-search-row{border:1px solid var(--border-light);border-radius:var(--radius-md);padding:6px 10px;display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:14px}
+.edit-preview-result-line{height:10px;border-radius:4px;background:var(--bg-tag-gray);margin-bottom:10px}
+.edit-preview-result-line.short{width:55%}
+.edit-preview-result-box{border:1px solid var(--green-brand);border-radius:var(--radius-md);padding:12px;display:flex;gap:12;margin:12px 0;background:#F6FEF9}
+.edit-preview-result-square{width:36px;height:36px;border-radius:var(--radius-md);background:var(--green-brand)}
+.edit-preview-filter-preview{display:flex;flex-direction:column;gap:12}
+.edit-preview-filter-col{width:90px}
+.edit-preview-filter-title{font-size:11px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
+.edit-preview-filter-line{height:8px;border-radius:4px;background:var(--bg-tag-gray);margin-bottom:8px}
+.edit-preview-generic{display:flex;flex-direction:column;gap:8}
+.warning-banner{background:#FEE2E2;border:1px solid #FECACA;border-radius:8px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--red-text);margin-bottom:16px}
+.warning-banner-close{color:var(--red-text);cursor:pointer;flex-shrink:0;margin-left:auto;opacity:.7}
+.warning-banner-close:hover{opacity:1}
+.sh-tabs{display:flex;gap:8px;margin-bottom:24px}
+.sh-tab{padding:6px 16px;font-size:13px;color:var(--text-secondary);border-radius:var(--radius-pill);cursor:pointer;transition:all .15s}
+.sh-tab:hover{background:var(--bg-page)}
+.sh-tab.active{background:var(--text-primary);color:#fff}
+.sh-overview-top{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.sh-overview-bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px}
+.sh-metric-card{padding:20px}
+.sh-metric-card-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+.sh-metric-card-desc{font-size:12px;color:var(--text-secondary);margin-bottom:16px}
+.sh-metric-card-value{font-size:28px;font-weight:700;margin-bottom:4px}
+.sh-metric-card-note{font-size:12px;color:var(--text-secondary)}
+.sh-status-card{padding:20px;border-left:3px solid transparent}
+.sh-status-card.status-attention{border-left-color:var(--amber)}
+.sh-status-card.status-error{border-left-color:var(--red)}
+.sh-status-card.status-healthy{border-left-color:var(--green-brand)}
+.sh-status-card-counts{display:flex;gap:24px;margin:12px 0}
+.sh-status-card-count-item{display:flex;flex-direction:column}
+.sh-status-card-count-label{font-size:11px;color:var(--text-secondary)}
+.sh-status-card-count-num{font-size:28px;font-weight:700;color:var(--text-primary)}
+.ch-card{padding:16px;margin-bottom:10px;border-left:3px solid transparent;display:flex;align-items:flex-start;gap:12px;transition:all .3s}
+.ch-card.ch-error{border-left-color:var(--red)}
+.ch-card.ch-warning{border-left-color:var(--amber)}
+.ch-card-content{flex:1}
+.ch-card-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:2px}
+.ch-card-scope{font-size:11px;color:var(--text-muted);margin-bottom:6px}
+.ch-card-desc{font-size:12px;color:var(--text-secondary);margin-bottom:8px}
+.ch-card-action{font-size:12px;font-weight:500;color:var(--blue);cursor:pointer}
+.ch-card-action:hover{text-decoration:underline}
+.ch-card-dismiss{color:var(--text-muted);cursor:pointer;flex-shrink:0}
+.ch-card-dismiss:hover{color:var(--text-primary)}
+.ch-card.dismissing{opacity:0;max-height:0;padding:0 16px;margin-bottom:0;overflow:hidden}
+.idx-metrics-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.idx-metrics-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.sp-controls{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border-light);background:var(--bg-card);flex-wrap:wrap}
+.sp-control-select{font-size:12px;color:var(--text-primary);border:1px solid var(--border-medium);border-radius:var(--radius-sm);padding:5px 10px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;gap:4px}
+.sp-search-input{flex:1;min-width:200px;border:1px solid var(--border-medium);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;display:flex;align-items:center;gap:6px;background:var(--bg-card)}
+.sp-search-input input{border:none;outline:none;flex:1;font-size:12px;background:transparent;font-family:inherit}
+.sp-refresh-btn{font-size:12px;color:var(--text-secondary);border:1px solid var(--border-medium);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:4px;background:var(--bg-card)}
+.sp-refresh-btn:hover{background:var(--bg-page)}
+.sp-filter-pills{display:flex;align-items:center;gap:8px;padding:8px 20px;border-bottom:1px solid var(--border-light);background:var(--bg-card);flex-wrap:wrap}
+.sp-filter-pill{font-size:11px;background:var(--bg-tag-gray);border-radius:var(--radius-pill);padding:3px 8px;display:flex;align-items:center;gap:4px;color:var(--text-primary)}
+.sp-clear-all{font-size:11px;color:var(--blue);cursor:pointer}
+.sp-clear-all:hover{text-decoration:underline}
+.sp-layout{display:flex;flex:1;overflow:hidden}
+.sp-refine{width:240px;border-right:1px solid var(--border-light);padding:16px;overflow-y:auto;background:var(--bg-card);flex-shrink:0}
+.sp-refine-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;font-size:14px;font-weight:600}
+.sp-refine-section{margin-bottom:20px}
+.sp-refine-section-title{font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
+.sp-refine-item{font-size:13px;color:var(--text-secondary);padding:6px 0;cursor:pointer;display:flex;align-items:center;gap:6px}
+.sp-refine-item:hover{color:var(--text-primary)}
+.sp-refine-item.selected{color:var(--text-primary);font-weight:500}
+.sp-results{flex:1;overflow-y:auto;padding:20px 24px 60px;background:var(--bg-page);min-width:0}
+.sp-results-header{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.sp-results-subheader{font-size:12px;color:var(--text-secondary);margin-bottom:16px}
+.sp-result-card{padding:16px;margin-bottom:12px}
+.sp-result-badge{font-size:10px;background:var(--bg-tag-gray);border-radius:var(--radius-sm);padding:2px 6px;color:var(--text-secondary);display:inline-block;margin-bottom:6px}
+.sp-result-title{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+.sp-result-desc{font-size:12px;color:var(--text-secondary);margin-bottom:8px;line-height:1.5}
+.sp-result-updated{font-size:11px;color:var(--text-muted);margin-bottom:12px}
+.sp-result-scores{display:flex;gap:16px;margin-bottom:12px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
+.sp-result-sysid{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
+.sp-why-ranked{margin-top:12px;border-top:1px solid var(--border-light);padding-top:12px}
+.sp-why-ranked-toggle{font-size:12px;font-weight:500;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;gap:4px}
+.sp-why-content{margin-top:10px}
+.sp-signal-cards{display:flex;gap:10px;margin-bottom:12px}
+.sp-signal-card{border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;flex:1}
+.sp-signal-card-label{font-size:10px;color:var(--text-muted);margin-bottom:2px}
+.sp-signal-card-type{font-size:12px;font-weight:600;margin-bottom:2px}
+.sp-signal-card-field{font-size:11px;color:var(--text-secondary);margin-bottom:2px}
+.sp-signal-card-boost{font-size:13px;font-weight:600;color:var(--green-text)}
+.sp-boost-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.sp-boost-table th,.sp-boost-table td{text-align:left;padding:4px 8px;font-size:11px;border-bottom:1px solid var(--border-light)}
+.sp-boost-table th{color:var(--text-muted);font-weight:500}
+.sp-contribution-table{width:100%;border-collapse:collapse}
+.sp-contribution-table th,.sp-contribution-table td{text-align:left;padding:4px 8px;font-size:11px;border-bottom:1px solid var(--border-light)}
+.sp-contribution-table th{color:var(--text-muted);font-weight:500}
+.sp-detail{width:280px;border-left:1px solid var(--border-light);padding:16px;overflow-y:auto;background:var(--bg-card);flex-shrink:0}
+.sp-detail-section{margin-bottom:18px}
+.sp-detail-section-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border-light)}
+.sp-detail-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
+.sp-detail-row-label{color:var(--text-secondary)}
+.sp-detail-row-value{color:var(--text-primary);font-weight:500;text-align:right;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-detail-row-value.highlight{color:var(--amber);font-weight:600}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useReducer,useEffect,useRef,useCallback} = React;
+const SCREENS = {LANDING:'LANDING',CONFIGURE_SEARCH:'CONFIGURE_SEARCH',EMPLOYEE_PORTAL:'EMPLOYEE_PORTAL',SYSTEM_HEALTH:'SYSTEM_HEALTH',SEARCH_PREVIEW:'SEARCH_PREVIEW'};
+const DATA = {
+  user:{name:'Richa',initials:'RR'},
+  applications:[
+    {id:'employee-portal',name:'Employee Portal',type:'Portal',sources:2,searchMode:'Hybrid',modified:'2 days ago'},
+    {id:'employee-service-center',name:'Employee Service Center',type:'Workspace',sources:5,searchMode:'Hybrid',modified:'3 days ago'},
+    {id:'it-self-service',name:'IT Self-Service Portal',type:'Portal',sources:2,searchMode:'Keyword',modified:'1 week ago'},
+    {id:'customer-service',name:'Customer Service Portal',type:'Portal',sources:4,searchMode:'Hybrid',modified:'5 days ago'},
+    {id:'hr-hub',name:'HR Hub',type:'Mobile',sources:2,searchMode:'Keyword',modified:'3 days ago'},
+    {id:'global-search',name:'Global Search',type:'Instance-wide',sources:8,searchMode:'Hybrid',modified:'Today'},
+  ],
+  appSources:{
+    'employee-portal':[
+      {name:'Knowledge Base',table:'kb_knowledge',documents:18432,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Service Catalog',table:'sc_cat_item',documents:4218,keyword:'Indexed',semantic:'In Progress',semanticEta:'~30 min',otto:true},
+    ],
+    'employee-service-center':[
+      {name:'Knowledge Base',table:'kb_knowledge',documents:18432,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Service Catalog',table:'sc_cat_item',documents:4218,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'HR Cases',table:'hr_cases',documents:6123,keyword:'Indexed',semantic:'Indexed',otto:false},
+    ],
+    'it-self-service':[
+      {name:'Incidents',table:'incident',documents:15234,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Knowledge Articles',table:'kb_knowledge',documents:9876,keyword:'Indexed',semantic:'Not Started',semanticEta:'~2h',otto:false},
+    ],
+    'customer-service':[
+      {name:'Case Knowledge',table:'kb_knowledge',documents:11200,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Service Catalog',table:'sc_cat_item',documents:3150,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Customer Cases',table:'sn_customerservice_case',documents:8200,keyword:'In Progress',semantic:'In Progress',semanticEta:'~1h',otto:false},
+      {name:'Community Posts',table:'community_post',documents:5400,keyword:'Indexed',semantic:'Indexed',otto:false},
+    ],
+    'hr-hub':[
+      {name:'HR Knowledge',table:'kb_knowledge',documents:12400,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'HR Cases',table:'hr_cases',documents:4500,keyword:'Indexed',semantic:'Not Started',semanticEta:'~3h',otto:false},
+    ],
+    'global-search':[
+      {name:'Knowledge Base',table:'kb_knowledge',documents:18432,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Incidents',table:'incident',documents:15234,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Service Catalog',table:'sc_cat_item',documents:4218,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'HR Cases',table:'hr_cases',documents:6123,keyword:'Indexed',semantic:'Indexed',otto:true},
+      {name:'Change Requests',table:'change_request',documents:8900,keyword:'Indexed',semantic:'In Progress',semanticEta:'~45 min',otto:false},
+    ],
+  },
+  epSources:[
+    {name:'SharePoint',table:'sn_sour_table',documents:8432,keyword:'Indexed',semantic:'Indexed',otto:true},
+    {name:'Service Catalog',table:'sc_cat_item',documents:4218,keyword:'Indexed',semantic:'In Progress',semanticEta:'~30 min',otto:true},
+  ],
+  newSrc:{name:'Employee Portal Knowledge',table:'kb_knowledge',documents:null,keyword:'Indexed',semantic:'In Progress',semanticEta:'~2h',otto:false},
+  suggestedActions:[
+    {description:'Missing EVAM configuration',date:'2026-03-03 19:26',scope:'Global',area:'Config'},
+    {description:'Source conditions reference inaccessible fields',date:'2026-03-04 18:27',scope:'Employee Service Center',area:'Config'},
+    {description:'Source conditions reference inaccessible fields',date:'2026-03-05 16:28',scope:'Employee Service Center',area:'Config'},
+    {description:'Knowledge Graph Plugin not installed',date:'2026-03-06 15:29',scope:'Customer Service Center',area:'System'},
+  ],
+  chErrors:[
+    {id:1,title:'Missing EVAM configuration',scope:'Global',desc:'One or more search applications are missing EVAM field mappings.'},
+    {id:2,title:'Source conditions reference inaccessible fields',scope:'Employee Portal',desc:'Filter conditions reference fields that do not exist or are not accessible.'},
+    {id:3,title:'Source conditions reference inaccessible fields',scope:'Employee Service Center',desc:'Filter conditions reference fields that do not exist or are not accessible.'},
+  ],
+  chWarnings:[
+    {id:4,title:'Knowledge Graph Plugin not installed',scope:'Customer Service Center',desc:'Knowledge Graph is not installed. Now Assist answer generation may have reduced accuracy.'},
+    {id:5,title:'Hybrid search enabled but no semantic fields configured',scope:'Employee Portal',desc:'Hybrid search is enabled, but indexed source does not have semantic field mappings.',dismissTarget:true},
+    {id:6,title:'Source has not been validated since creation',scope:'Employee Portal',desc:'This source has never been tested.'},
+    {id:7,title:'Data retention period may be too broad',scope:'IT Help Desk',desc:'Retention period is set to 5 years.'},
+    {id:8,title:'Attachments indexed but no attachment ACLs configured',scope:'Global Search',desc:'Attachments are indexed, but no access control rules are applied.'},
+  ],
+  idxSources:[
+    {action:null,status:'healthy',name:'HR Knowledge Base',table:'sn_sour_table',keyword:'In Progress',kEta:'~2h30m',semantic:'Indexed',progress:32,cur:3668,tot:11500},
+    {action:null,status:'healthy',name:'Incidents',table:'sn_sour_table',keyword:'In Progress',kEta:'~10h10m',semantic:'In Progress',sEta:'~3h5m',progress:12,cur:1432,tot:12200},
+    {action:'review',status:'warning',name:'Service Catalog',table:'sn_sour_table',keyword:'Indexed',semantic:'Warning',progress:88,cur:12215,tot:13950},
+    {action:'review',status:'warning',name:'Custom IT Catalog',table:'sn_sour_table',keyword:'Indexed',semantic:'Warning',progress:81,cur:12000,tot:14800},
+    {action:null,status:'healthy',name:'User Feedback',table:'sn_sour_table',keyword:'In Progress',kEta:'~4h32m',semantic:'Indexed',progress:50,cur:7745,tot:15600},
+    {action:null,status:'healthy',name:'IT Service Management',table:'sn_sour_table',keyword:'Indexed',semantic:'Indexed',progress:100,cur:16400,tot:16400},
+    {action:null,status:'healthy',name:'Knowledge Articles',table:'sn_sour_table',keyword:'Indexed',semantic:'Indexed',progress:100,cur:17250,tot:17250},
+    {action:null,status:'healthy',name:'Asset Management',table:'sn_sour_table',keyword:'Indexed',semantic:'Indexed',progress:100,cur:18100,tot:18100},
+    {action:'fix',status:'error',name:'Change Requests',table:'sn_sour_table',keyword:'Indexed',semantic:'Error',progress:26,cur:4895,tot:18950},
+    {action:null,status:'healthy',name:'Problem Management',table:'sn_sour_table',keyword:'Indexed',semantic:'Indexed',progress:100,cur:19800,tot:19800},
+    {action:null,status:'healthy',name:'Configuration Items',table:'sn_sour_table',keyword:'Indexed',semantic:'Indexed',progress:100,cur:20650,tot:20650},
+    {action:null,status:'healthy',name:'Support Tickets',table:'sn_sour_table',keyword:'In Progress',kEta:'~1h4m',semantic:'Indexed',progress:24,cur:5260,tot:21500},
+    {action:'fix',status:'error',name:'Network Issues',table:'sn_sour_table',keyword:'In Progress',kEta:'~25m',semantic:'Error',progress:14,cur:3048,tot:22350},
+    {action:'fix',status:'error',name:'Software Updates',table:'sn_sour_table',keyword:'Error',semantic:'Indexed',progress:34,cur:7835,tot:23200},
+    {action:null,status:'healthy',name:'Vendor Documents',table:'sn_sour_table',keyword:'Indexed',semantic:'In Progress',sEta:'~55m',progress:2,cur:568,tot:24050},
+  ],
+  sp:{query:'how do I access employee portal',count:20,top:{type:'catalog_item',title:'Employee Portal Access Guide',desc:'Learn how to log in and navigate the Employee Portal (SAC). Access HR services, pay stubs, benefits enrollment, and IT requests from a single location.',updated:'2 weeks ago',score:52.0,match:'Keyword search',lang:'Eng',kwFactor:'Title',kwBoost:'+140%',semFactor:'Body',semBoost:'+110%'},
+    detail:{qEntered:'How do I access em...',terms:3,qLang:'English',synApplied:'Yes',termExp:'Portal SAC, SAC',expTo:'Servicenow, employ...',spellCheck:'Yes',rankMode:'Hybrid (keyword+se...)',embed:'E5FT',dataSrc:'Knowledge, Catalog...',lat:{pre:'14ms',search:'22ms',genius:'2ms',sec:'204ms',total:'298ms'}}},
+  spLaptop:{count:1,top:{type:'catalog_item',title:'Request New Laptop',desc:'Submit a request for a new company laptop. Choose from approved hardware options and specify any special requirements for your role.',updated:'3 days ago',score:48.5,match:'Keyword search',lang:'Eng',kwFactor:'Title',kwBoost:'+150%',semFactor:'Body',semBoost:'+95%'},
+    detail:{qEntered:'New laptop',terms:2,qLang:'English',synApplied:'Yes',termExp:'Laptop, notebook',expTo:'Request New Laptop, IT Hardware',spellCheck:'Yes',rankMode:'Hybrid (keyword+se...)',embed:'E5FT',dataSrc:'Catalog Items',lat:{pre:'12ms',search:'19ms',genius:'2ms',sec:'180ms',total:'213ms'}}},
+};
+
+const SI=({size=16,color='currentColor'})=><svg width={size} height={size} viewBox="0 0 16 16" fill={color}><path d="M8 0 L9.2 6.8 L16 8 L9.2 9.2 L8 16 L6.8 9.2 L0 8 L6.8 6.8 Z"/></svg>;
+const HW=({size=16,color='currentColor'})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.5"><polyline points="1,8 4,4 6,12 9,4 11,8 14,8"/></svg>;
+const AUR=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 10L10 4M10 4H5M10 4V9"/></svg>;
+const WI=({size=14,color='currentColor'})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none"><path d="M8 1L15 14H1L8 1Z" stroke={color} strokeWidth="1.3"/><line x1="8" y1="6" x2="8" y2="10" stroke={color} strokeWidth="1.3"/><circle cx="8" cy="12" r=".8" fill={color}/></svg>;
+const ECI=({size=14,color='currentColor'})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.3"><circle cx="8" cy="8" r="6.5"/><line x1="8" y1="5" x2="8" y2="9"/><circle cx="8" cy="11" r=".7" fill={color}/></svg>;
+const CCI=({size=14,color='currentColor'})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke={color} strokeWidth="1.5"><circle cx="8" cy="8" r="6.5"/><polyline points="5,8 7,10.5 11,5.5"/></svg>;
+const XI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3L11 11M11 3L3 11"/></svg>;
+const SrI=({size=14})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="4.5"/><line x1="10.5" y1="10.5" x2="14" y2="14"/></svg>;
+const MiI=({size=14})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="6" y="2" width="4" height="7" rx="2"/><path d="M4 8a4 4 0 008 0"/><line x1="8" y1="12" x2="8" y2="14"/><line x1="6" y1="14" x2="10" y2="14"/></svg>;
+const SendI=({size=14})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 8L14 2L8 14L7 9L2 8Z"/></svg>;
+const PlI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="7" y1="2" x2="7" y2="12"/><line x1="2" y1="7" x2="12" y2="7"/></svg>;
+const HbI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><line x1="2" y1="3.5" x2="12" y2="3.5"/><line x1="2" y1="7" x2="12" y2="7"/><line x1="2" y1="10.5" x2="12" y2="10.5"/></svg>;
+const PnI=({size=14})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M10 2L14 6L9 11L5 12L6 8L10 2Z"/><line x1="5" y1="12" x2="2" y2="15"/></svg>;
+const PnOffI=({size=14})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M10 2L14 6L9 11L5 12L6 8L10 2Z"/><line x1="2" y1="2" x2="14" y2="14"/></svg>;
+const CDI=({size=12})=><svg width={size} height={size} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3,4.5 6,7.5 9,4.5"/></svg>;
+const ExpI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M2 8h4v4M12 6V2H8M10 4L4 10"/></svg>;
+const ColI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M12 6H8V2M2 8h4v4M4 10l6-6"/></svg>;
+const CRI=({size=12})=><svg width={size} height={size} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="4.5,3 7.5,6 4.5,9"/></svg>;
+const EdI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M9.5 2.5L11.5 4.5L4.5 11.5H2.5V9.5L9.5 2.5Z"/></svg>;
+const MrI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="currentColor"><circle cx="7" cy="3" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="7" cy="11" r="1.2"/></svg>;
+const FtI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M2 3h10L8 7.5V11l-2 1V7.5L2 3Z"/></svg>;
+const HmI=({size=20})=><svg width={size} height={size} viewBox="0 0 20 20" fill="currentColor"><path d="M10 2L3 8v9h5v-5h4v5h5V8l-7-6Z"/></svg>;
+const HmOutI=({size=20})=><svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 2L3 8v9h5v-5h4v5h5V8l-7-6Z"/></svg>;
+const MonI=({size=20})=><svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="16" height="10" rx="2"/><path d="M6 11l3-4 2 3 3-5"/><path d="M8 16h4"/></svg>;
+const SlI=({size=20})=><svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="5" y1="4" x2="5" y2="16"/><line x1="10" y1="4" x2="10" y2="16"/><line x1="15" y1="4" x2="15" y2="16"/><circle cx="5" cy="7" r="1.8" fill="currentColor"/><circle cx="10" cy="12" r="1.8" fill="currentColor"/><circle cx="15" cy="9" r="1.8" fill="currentColor"/></svg>;
+const PlugI=({size=20})=><svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M13 3v4a3 3 0 01-6 0V3"/><path d="M10 10v7"/><path d="M6 17h8"/><path d="M5 3h10"/></svg>;
+const TargetI=({size=20})=><svg width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2"/><path d="M4.34 4.34l1.42 1.42M14.24 14.24l1.42 1.42M4.34 15.66l1.42-1.42M14.24 5.76l1.42-1.42"/></svg>;
+const LogoI=({size=28})=><svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>;
+const CfI=({size=16})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>;
+const ExI=({size=16})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="4" width="12" height="9" rx="1.5"/><path d="M5 4V3a3 3 0 016 0v1"/></svg>;
+const RfI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M2 7a5 5 0 019.3-2.5M12 7a5 5 0 01-9.3 2.5"/><polyline points="11,2 11.3,4.5 9,5"/><polyline points="3,12 2.7,9.5 5,9"/></svg>;
+const BkI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="8,3 4,7 8,11"/></svg>;
+const CpI=({size=12})=><svg width={size} height={size} viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.2"><rect x="4" y="4" width="6" height="6" rx="1"/><path d="M2 8V2h6"/></svg>;
+const DocI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="3" y="2" width="8" height="10" rx="1"/><line x1="5" y1="5" x2="9" y2="5"/><line x1="5" y1="7" x2="9" y2="7"/><line x1="5" y1="9" x2="7" y2="9"/></svg>;
+const ChatI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M12 7a5 5 0 01-5 5H4.5L2 13V5a5 5 0 015-5h0a5 5 0 015 5Z"/></svg>;
+const VidI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="3" width="7" height="7" rx="1"/><polygon points="10,7 13,5 13,10" fill="currentColor"/></svg>;
+const ShI=({size=18})=><svg width={size} height={size} viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="6" cy="6" r="4.5"/><line x1="10.5" y1="10.5" x2="16" y2="16"/></svg>;
+const MLinkI=({size=16})=><svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M6 3L11 3L11 8"/><path d="M11 3L5 9"/></svg>;
+
+const Pill=({status,label,icon})=>{
+  const ic={healthy:<HW size={12}/>,running:<HW size={12}/>,attention:<WI size={11}/>,error:<ECI size={11}/>,configured:<CCI size={11}/>,'active-status':<CCI size={11}/>};
+  const lb={healthy:'Healthy',running:'Running',attention:'Attention',error:'Error','in-progress':'In Progress',configured:'Configured','not-configured':'Not Configured',info:label,'active-status':'Active'};
+  return <span className={`status-pill ${status}`}>{icon!==false&&ic[status]}{label||lb[status]}</span>;
+};
+const Tog=({on,onChange})=><div className={`toggle ${on?'on':''}`} onClick={()=>onChange&&onChange(!on)}/>;
+const PB=({pct,ip})=><div className="progress-bar"><div className={`progress-bar-fill ${ip?'in-progress':''}`} style={{width:`${pct}%`}}/></div>;
+const OL=()=><div className="otto-loading"><div className="otto-dot"/><div className="otto-dot"/><div className="otto-dot"/></div>;
+
+const escSrcs=DATA.appSources['employee-service-center'].filter(x=>x.name!=='Service Catalog');
+const init={currentScreen:SCREENS.LANDING,ottoOpen:false,cs:null,scenario:null,srcAdded:false,valDone:false,warnOff:false,sel:{},hTab:'Overview',epTab:'Sources',epBanner:true,srcName:'Employee Portal Knowledge',refOpen:true,whyOpen:false,selApp:'employee-portal',ottoInput:'',uc1Src:null,ottoApp:'',ottoIssue:'',ottoQuery:'',p1Sources:escSrcs,p1SrcAdded:false,p1RcBannerOff:false,p1ValFixed:false,p1ValQuery:''};
+function red(s,a){
+  switch(a.type){
+    case 'SCR':return{...s,currentScreen:a.v};
+    case 'SEL_APP':return{...s,selApp:a.v};
+    case 'TOG_O':return{...s,ottoOpen:!s.ottoOpen};
+    case 'SET_O':return{...s,ottoOpen:a.v};
+    case 'SET_CS':return{...s,cs:a.v};
+    case 'SCEN':return{...s,scenario:a.v,cs:a.cs,ottoOpen:true,sel:{},ottoApp:'',ottoIssue:'',ottoQuery:'',ottoInput:'',uc1Src:null,p1Sources:escSrcs,p1SrcAdded:false,p1RcBannerOff:false,p1ValFixed:false,p1ValQuery:''};
+    case 'SEL':return{...s,sel:{...s.sel,[a.step]:a.opt}};
+    case 'SRC_ADD':return{...s,srcAdded:true};
+    case 'VAL':return{...s,valDone:true};
+    case 'WARN':return{...s,warnOff:true};
+    case 'H_TAB':return{...s,hTab:a.v};
+    case 'EP_TAB':return{...s,epTab:a.v};
+    case 'FOCUS_RC':return{...s,epTab:'Interface'};
+    case 'EP_BAN':return{...s,epBanner:false};
+    case 'P1_RC_BANNER_OFF':return{...s,p1RcBannerOff:true};
+    case 'SRC_NM':return{...s,srcName:a.v};
+    case 'REF':return{...s,refOpen:a.v};
+    case 'WHY':return{...s,whyOpen:a.v};
+    case 'SET_OI':return{...s,ottoInput:a.v};
+    case 'SUB_OI':
+      if(s.cs==='P1_TABLE')return{...s,cs:'P1_FILTER',ottoInput:'',uc1Src:{name:'Catalog Items',rawName:s.ottoInput||'Catalog items',table:'sc_cat_item',filter:'Active = true',searchMode:'Hybrid',linkedTo:'Employee Center'}};
+      if(s.cs==='P2_QUERY')return{...s,cs:'P2_DIAGNOSE',ottoQuery:s.ottoInput||'Reset my password',ottoInput:''};
+      return s;
+    case 'P1_SRC_ADD':return{...s,p1SrcAdded:true,uc1Src:{name:'Catalog Items'},p1Sources:[...s.p1Sources,{name:'Catalog Items',table:'sc_cat_item',documents:null,documentsPerSecond:1240,keyword:'Indexed',semantic:'In Progress',semanticEta:'~30 min',otto:true}]};
+    case 'P1_RC_COMPLETE':return{...s,p1Sources:s.p1Sources.map(src=>src.name==='Catalog Items'?{...src,documents:4218,documentsPerSecond:null,semantic:'Indexed',semanticEta:null}:src)};
+    case 'SET_P1VQ':return{...s,p1ValQuery:a.v};
+    case 'P1_VAL_SEARCH':{
+      const q=(a.v||'').trim();
+      if(!q)return s;
+      return{...s,p1ValQuery:q,cs:s.p1ValFixed?'P1_VAL_RESULTS_FOUND':'P1_VAL_NORESULTS'};
+    }
+    case 'P1_VAL_FIX':return{...s,p1ValFixed:true,p1ValQuery:''};
+    case 'UC1_RC':return{...s,cs:'UC1_RESULT_CARD',epTab:'Interface'};
+    case 'RESET':return{...init};
+    default:return s;
+  }
+}
+
+/* Left Nav */
+const LeftNav=({d,cs})=>(
+  <div className="left-nav">
+    <div className="nav-logo" title="AI Search Admin"><LogoI/></div>
+    <div className={`nav-icon ${cs===SCREENS.LANDING?'active':''}`} title="Home" onClick={()=>d({type:'SCR',v:SCREENS.LANDING})}>{cs===SCREENS.LANDING?<HmI/>:<HmOutI/>}</div>
+    <div className={`nav-icon ${cs===SCREENS.SYSTEM_HEALTH?'active':''}`} title="System Health" onClick={()=>d({type:'SCR',v:SCREENS.SYSTEM_HEALTH})}><MonI/></div>
+    <div className={`nav-icon ${cs===SCREENS.CONFIGURE_SEARCH?'active':''}`} title="Configure" onClick={()=>d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH})}><SlI/></div>
+    <div className="nav-icon" title="Ask Otto" onClick={()=>{console.log('Otto toggle clicked');d({type:'TOG_O'});}} style={{color:'var(--green-brand)'}}><SI size={22}/></div>
+    <div className="nav-divider"/>
+    <div className="nav-spacer"/>
+    <div className="nav-avatar" title={DATA.user.name}>{DATA.user.initials}</div>
+  </div>
+);
+
+/* Otto Panel */
+const Otto=({state:s,d})=>{
+  const ref=useRef(null);
+  useEffect(()=>{if(ref.current)setTimeout(()=>{if(ref.current)ref.current.scrollTop=ref.current.scrollHeight;},60);},[s.cs]);
+  useEffect(()=>{
+    let t;
+    if(s.cs==='S1_CHECKING')t=setTimeout(()=>d({type:'SET_CS',v:'S1_FOUND'}),1500);
+    else if(s.cs==='S1_SAVING')t=setTimeout(()=>{d({type:'SRC_ADD'});d({type:'SET_CS',v:'S1_INDEXING'});},1500);
+    else if(s.cs==='S2_PREVIEW_OPEN')t=setTimeout(()=>d({type:'SET_CS',v:'S2_RESULTS'}),2000);
+    else if(s.cs==='S3_PREVIEW_OPEN')t=setTimeout(()=>d({type:'SET_CS',v:'S3_RESULTS'}),1000);
+    else if(s.cs==='S2_VALIDATED')t=setTimeout(()=>{d({type:'VAL'});d({type:'WARN'});},1000);
+    return()=>clearTimeout(t);
+  },[s.cs]);
+
+  const pk=(step,label,next,extra)=>{d({type:'SEL',step,opt:label});if(extra)extra();d({type:'SET_CS',v:next});};
+  const OB=({st,lb,nx,ex})=>{const sel=s.sel[st];const isCurrent=s.cs===st;const isSelected=sel===lb;const dis=sel&&!isSelected;if(!isCurrent&&!isSelected)return null;return<button className={`otto-option ${isSelected?'selected':''}`} style={dis?{opacity:.5,pointerEvents:'none'}:{}} onClick={()=>pk(st,lb,nx,ex)}>{lb}</button>;};
+
+  const steps=s.scenario===1?['S1_INTRO','S1_CHECKING','S1_FOUND','S1_NAME','S1_ATTACHMENTS','S1_MULTILINGUAL','S1_FILTERS','S1_HYBRID','S1_REVIEW','S1_SAVING','S1_INDEXING']:s.scenario===2?['S2_INTRO','S2_HEALTH_OVERVIEW','S2_CONFIG_HEALTH','S2_PREVIEW_OPEN','S2_RESULTS','S2_RESULTS_ACL','S2_VALIDATED','S2_DONE']:s.scenario===3?['S3_INTRO','S3_PREVIEW_OPEN','S3_RESULTS','S3_TROUBLESHOOT','S3_COMPLETE']:s.scenario===4?['UC1_GREET','UC1_TABLE','UC1_FILTER','UC1_HYBRID','UC1_SUMMARY','UC1_DONE','UC1_RESULT_CARD']:s.scenario===5?['OP_GREET','P1_APP','P1_CONTENT','P1_FILTER','P1_HYBRID','P1_SUMMARY','P1_DONE','P1_RESULT_CARD','P1_RC_NEXT','P1_VAL_NEXT','P1_VAL_PROMPT','P1_VAL_NORESULTS','P1_VAL_FIX_RETURN','P1_VAL_RESULTS_FOUND','P1_VAL_DONE','P1_VAL_FINAL','P2_APP','P2_ISSUE','P2_QUERY','P2_DIAGNOSE','P2_FILTER','P2_OPEN_SOURCE','P3_CHECK','P3_MISCONFIG','P3_FIX_FIRST','P3_ERROR_DETAIL','P3_OPEN_ERROR','P3_SAVED','P3_WARNING','P3_OPEN_SOURCE']:[];
+
+  const renderStep=(id)=>{
+    switch(id){
+      case 'S1_INTRO':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I see you are in Employee Portal. You have 2 sources configured: SharePoint and Service Catalog. How can I help?</div><OB st="S1_INTRO" lb="Add a knowledge source" nx="S1_CHECKING"/><OB st="S1_INTRO" lb="Check my configuration" nx="S1_CHECKING"/><OB st="S1_INTRO" lb="Ask a question" nx="S1_CHECKING"/></>;
+      case 'S1_CHECKING':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I will add a knowledge source to Employee Portal. Let me check if the knowledge table is already indexed on your instance.</div><OL/></>;
+      case 'S1_FOUND':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> The knowledge table is already indexed by another application. You can reuse the existing index source — this avoids duplication and will not trigger a full reindex. Here are the current settings.</div><div className="otto-info-card"><div className="otto-info-card-title">kb_knowledge</div><div className="otto-info-card-row"><span>Keyword indexing</span><span>Indexed</span></div><div className="otto-info-card-row"><span>Semantic indexing</span><span>Indexed</span></div><div className="otto-info-card-row"><span>Documents</span><span>18,432</span></div></div><OB st="S1_FOUND" lb="Reuse existing source" nx="S1_NAME"/><OB st="S1_FOUND" lb="Create a new source" nx="S1_NAME"/></>;
+      case 'S1_NAME':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have pre-filled the settings from the existing source. Let me walk you through each option. First, what should we call this source?</div><div className="otto-source-input"><label>Source name</label><input value={s.srcName} onChange={e=>d({type:'SRC_NM',v:e.target.value})}/></div><OB st="S1_NAME" lb="Use this name" nx="S1_ATTACHMENTS"/></>;
+      case 'S1_ATTACHMENTS':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Should this source include attachments? Attachments such as PDFs and documents attached to knowledge articles will be indexed and searchable.</div><OB st="S1_ATTACHMENTS" lb="Yes, include attachments" nx="S1_MULTILINGUAL"/><OB st="S1_ATTACHMENTS" lb="No, skip attachments" nx="S1_MULTILINGUAL"/></>;
+      case 'S1_MULTILINGUAL':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Does this application need to support multiple languages? I detected that your instance has content in English only, so this is not required right now.</div><OB st="S1_MULTILINGUAL" lb="No, English only" nx="S1_FILTERS"/><OB st="S1_MULTILINGUAL" lb="Yes, enable multilingual support" nx="S1_FILTERS"/></>;
+      case 'S1_FILTERS':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Here are the filter conditions from the existing source. These filter for active records only, which keeps your index lean and relevant.</div><div className="otto-filter-card"><div className="otto-filter-title">Filter conditions</div><div className="otto-filter-pills"><span className="otto-filter-pill">active</span><span className="otto-filter-pill">is</span><span className="otto-filter-pill">true</span></div></div><OB st="S1_FILTERS" lb="Keep these filters" nx="S1_HYBRID"/><OB st="S1_FILTERS" lb="Edit filters" nx="S1_HYBRID"/></>;
+      case 'S1_HYBRID':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Hybrid search is recommended for the knowledge table. Knowledge articles contain rich content, so combining keyword and semantic search returns more accurate results for natural language queries. Would you like to enable it?</div><OB st="S1_HYBRID" lb="Yes, enable hybrid search" nx="S1_REVIEW"/><OB st="S1_HYBRID" lb="No, keyword only" nx="S1_REVIEW"/></>;
+      case 'S1_REVIEW':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Here is a summary of your new knowledge source. Everything looks good. Ready to save?</div><div className="otto-info-card"><div className="otto-info-card-title">{s.srcName}</div><div className="otto-info-card-row"><span>Table</span><span>kb_knowledge</span></div><div className="otto-info-card-row"><span>Include attachments</span><span>Yes</span></div><div className="otto-info-card-row"><span>Multiple languages</span><span>No</span></div><div className="otto-info-card-row"><span>Search mode</span><span>Hybrid</span></div><div className="otto-info-card-row"><span>Data retention</span><span>2 years</span></div><div className="otto-info-card-row"><span>Filter conditions</span><span>active is true</span></div><div className="otto-info-card-row"><span>Title field</span><span>short_description</span></div><div className="otto-info-card-row"><span>Body field</span><span>text</span></div><div className="otto-info-card-row"><span>Sort by</span><span>sys_updated_on</span></div></div><button className="otto-save-btn" style={s.sel['S1_REVIEW']?{opacity:.6,pointerEvents:'none'}:{}} onClick={()=>pk('S1_REVIEW','Save','S1_SAVING')}>Save</button>{!s.sel['S1_REVIEW']&&<OB st="S1_REVIEW" lb="Go back and edit" nx="S1_NAME"/>}</>;
+      case 'S1_SAVING':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Saving...</div><OL/></>;
+      case 'S1_INDEXING':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Your knowledge source has been added and indexing has started. This table has 18,432 documents — indexing will take approximately 2 hours. You will see progress in the Sources tab.</div><div className="otto-message-content" style={{marginTop:4}}>In the meantime, I recommend reviewing the result card configuration to make sure the right fields appear in search results. Would you like me to take you there?</div><OB st="S1_INDEXING" lb="Yes, review the search interface" nx="S1_INDEXING" ex={()=>d({type:'SCR',v:SCREENS.SEARCH_PREVIEW})}/><OB st="S1_INDEXING" lb="I will do that later" nx="S1_INDEXING"/></>;
+      case 'S2_INTRO':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Good morning, {DATA.user.name}. I found issues in your instance that need attention. Configuration Health shows 3 errors and 5 warnings. One issue may be affecting search results in Employee Portal. Would you like me to guide you through it?</div><OB st="S2_INTRO" lb="Yes, show me" nx="S2_HEALTH_OVERVIEW" ex={()=>d({type:'SCR',v:SCREENS.SYSTEM_HEALTH})}/><OB st="S2_INTRO" lb="Maybe later" nx="S2_INTRO"/></>;
+      case 'S2_HEALTH_OVERVIEW':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Here is the current state of your system. Configuration Health has 3 errors and 5 warnings. Let me start with the most important one.</div><div className="otto-message-content" style={{marginTop:4}}>A knowledge source in Employee Portal has not been validated since it was added. Results from this source have not been confirmed as accurate. Would you like to validate it now?</div><OB st="S2_HEALTH_OVERVIEW" lb="Yes, validate now" nx="S2_PREVIEW_OPEN" ex={()=>d({type:'SCR',v:SCREENS.SEARCH_PREVIEW})}/><OB st="S2_HEALTH_OVERVIEW" lb="Show me all issues first" nx="S2_CONFIG_HEALTH" ex={()=>d({type:'H_TAB',v:'Configuration Health'})}/></>;
+      case 'S2_CONFIG_HEALTH':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Here are your current issues. The most impactful one is the unvalidated source in Employee Portal. I recommend starting there. Ready to validate?</div><OB st="S2_CONFIG_HEALTH" lb="Yes, validate now" nx="S2_PREVIEW_OPEN" ex={()=>d({type:'SCR',v:SCREENS.SEARCH_PREVIEW})}/></>;
+      case 'S2_PREVIEW_OPEN':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have opened a search preview scoped to Employee Portal. Try a query that your employees would typically search for. For example: try "parental leave policy" or "expense reimbursement."</div><OL/></>;
+      case 'S2_RESULTS':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> These results look reasonable. The top result is "Employee Portal Access Guide" — it ranked first based on the title match and hybrid scoring. Before marking this source as validated, confirm two things:</div><div className="otto-message-content" style={{marginTop:4}}>1. The right content is appearing in results.<br/>2. The users who should see these results have the correct access.</div><OB st="S2_RESULTS" lb="Yes, access is confirmed — results look good" nx="S2_VALIDATED"/><OB st="S2_RESULTS" lb="I need to check access first" nx="S2_RESULTS_ACL"/></>;
+      case 'S2_RESULTS_ACL':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> You can check ACLs in the Security {'>'} Access Control module. Come back when you are ready.</div><OB st="S2_RESULTS_ACL" lb="Yes, access is confirmed — results look good" nx="S2_VALIDATED"/></>;
+      case 'S2_VALIDATED':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> This source is now validated. I am dismissing the warning from Configuration Health.</div><div className="otto-message-content" style={{marginTop:8}}><SI size={12} color="var(--green-brand)"/> One issue resolved. There are 2 more errors remaining. Would you like to continue?</div><OB st="S2_VALIDATED" lb="Yes, continue" nx="S2_DONE"/><OB st="S2_VALIDATED" lb="I will handle the rest later" nx="S2_DONE"/></>;
+      case 'S2_DONE':return<div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Sounds good. I am here if you need anything.</div>;
+      case 'S3_INTRO':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Your knowledge source has finished indexing and is ready. Would you like to validate that it is returning the right results?</div><OB st="S3_INTRO" lb="Yes, validate" nx="S3_PREVIEW_OPEN" ex={()=>d({type:'SCR',v:SCREENS.SEARCH_PREVIEW})}/><OB st="S3_INTRO" lb="Not now" nx="S3_INTRO"/></>;
+      case 'S3_PREVIEW_OPEN':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have opened a preview scoped to your new Employee Portal knowledge source. Try a query your employees would search for. Something like: "flexible working policy" or "parental leave."</div><OL/></>;
+      case 'S3_RESULTS':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I found 20 results. The top result is "Flexible Work Arrangement Guide" — it is ranked first based on the short description and body fields you configured during setup. Does this look right?</div><OB st="S3_RESULTS" lb="Yes, this looks correct" nx="S3_COMPLETE"/><OB st="S3_RESULTS" lb="Something looks wrong" nx="S3_TROUBLESHOOT"/></>;
+      case 'S3_TROUBLESHOOT':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Let me help you diagnose. The most common cause for unexpected results is the body field pulling from the wrong column. Your current body field is set to "text." Would you like me to update that field?</div><OB st="S3_TROUBLESHOOT" lb="Yes, update the body field" nx="S3_COMPLETE"/><OB st="S3_TROUBLESHOOT" lb="No, the results are actually fine" nx="S3_COMPLETE"/></>;
+      case 'S3_COMPLETE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Your knowledge source is live in Employee Portal. Setup is complete. Admins and employees can now find knowledge articles through search.</div><div style={{marginTop:8,animation:'fadeIn .5s ease-out'}}><CCI size={24} color="var(--green-brand)"/></div></>;
+      case 'OP_GREET':{
+        const isCurrent=s.cs==='OP_GREET';
+        const selected=s.cs.startsWith('P1')?'Set up or add a new source':s.cs.startsWith('P2')?'My search results are not working':s.cs.startsWith('P3')?'Check my system health':null;
+        return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Hi Richa. I am Otto, your AI Search assistant.</div><div className="otto-message-content">I can help you set up and configure search, troubleshoot issues, and keep your system healthy.</div><div className="otto-message-content">What would you like to do today?</div>{isCurrent?<><button className="otto-option" onClick={()=>{d({type:'SCEN',v:5,cs:'P1_APP'});d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH});}}>Set up or add a new source</button><button className="otto-option" onClick={()=>{d({type:'SCEN',v:5,cs:'P2_APP'});d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH});}}>My search results are not working</button><button className="otto-option" onClick={()=>{d({type:'SCEN',v:5,cs:'P3_CHECK'});d({type:'SCR',v:SCREENS.SYSTEM_HEALTH});}}>Check my system health</button></>:selected&&<button className="otto-option selected" style={{pointerEvents:'none'}}>{selected}</button>}</>;
+      }
+      case 'P1_APP':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Which application do you want to configure search for?</div><OB st="P1_APP" lb="Employee Service Center" nx="P1_CONTENT" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'SEL_APP',v:'employee-service-center'});d({type:'EP_TAB',v:'Sources'});}}/><OB st="P1_APP" lb="IT Self-Service Portal" nx="P1_CONTENT" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'SEL_APP',v:'it-self-service'});d({type:'EP_TAB',v:'Sources'});}}/><OB st="P1_APP" lb="HR Portal" nx="P1_CONTENT" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'SEL_APP',v:'hr-hub'});d({type:'EP_TAB',v:'Sources'});}}/><OB st="P1_APP" lb="Other" nx="P1_CONTENT" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'SEL_APP',v:'employee-service-center'});d({type:'EP_TAB',v:'Sources'});}}/></>;
+      case 'P1_CONTENT':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> What do you want to make searchable in {s.sel['P1_APP']||'Employee Service Center'}?</div><OB st="P1_CONTENT" lb="Catalog items" nx="P1_FILTER"/><OB st="P1_CONTENT" lb="Knowledge articles" nx="P1_FILTER"/><OB st="P1_CONTENT" lb="Something else" nx="P1_FILTER"/></>;
+      case 'P1_FILTER':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Got it. I checked the backend. The catalog items table has not been indexed on your instance yet, so I will create a new source from scratch.<br/>Do you want to include all active catalog items, or filter to a specific category?</div><OB st="P1_FILTER" lb="All active items" nx="P1_HYBRID"/><OB st="P1_FILTER" lb="Let me set a filter" nx="P1_HYBRID"/></>;
+      case 'P1_HYBRID':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Your instance has Now Assist. I can enable and add the source for hybrid search. It works better for natural language queries, and catalog items are a good candidate for us to include it in hybrid.</div><OB st="P1_HYBRID" lb="Enable hybrid search" nx="P1_SUMMARY"/><OB st="P1_HYBRID" lb="Keep keyword only" nx="P1_SUMMARY"/></>;
+      case 'P1_SUMMARY':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Here is what I am about to set up:</div><div className="otto-info-card"><div className="otto-info-card-title">Catalog Items</div><div className="otto-info-card-row"><span>Source</span><span>Catalog Items</span></div><div className="otto-info-card-row"><span>Table</span><span>sc_cat_item</span></div><div className="otto-info-card-row"><span>Filter</span><span>Active = true</span></div><div className="otto-info-card-row"><span>Search mode</span><span>Hybrid</span></div><div className="otto-info-card-row"><span>Linked to</span><span>Employee Service Center</span></div></div><OB st="P1_SUMMARY" lb="Confirm and start indexing" nx="P1_DONE" ex={()=>d({type:'P1_SRC_ADD'})}/><OB st="P1_SUMMARY" lb="Change something" nx="P1_APP"/></>;
+      case 'P1_DONE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Done. Indexing has started.<br/>While you wait, I recommend checking your result card so search results display correctly the moment indexing finishes.</div><OB st="P1_DONE" lb="Set up my result card now" nx="P1_RESULT_CARD" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'SEL_APP',v:'employee-service-center'});d({type:'FOCUS_RC'});d({type:'SET_O',v:true});}}/><OB st="P1_DONE" lb="I will do this later" nx="P1_RESULT_CARD"/></>;
+      case 'P1_RESULT_CARD':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have opened the result card configuration screen for <strong>Catalog Items</strong> inside the Employee Service Center tab.</div><OB st="P1_RESULT_CARD" lb="This looks good" nx="P1_RC_NEXT" ex={()=>{d({type:'EP_TAB',v:'Sources'});d({type:'P1_RC_COMPLETE'});}}/><OB st="P1_RESULT_CARD" lb="I need help editing" nx="P1_RC_NEXT"/></>;
+      case 'P1_RC_NEXT':return s.sel['P1_RESULT_CARD']==='I need help editing'?<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> No problem. Click any field's pill in the result card to change what data it maps to, or use "Add field" to include another field.</div></>:<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> It looks like your indexing has also completed for Catalog Items. Your source is ready.<br/>Want to run a quick check to make sure the right results are showing up for your users?</div><OB st="P1_RC_NEXT" lb="Yes, let's validate" nx="P1_VAL_NEXT" ex={()=>d({type:'SCR',v:SCREENS.SEARCH_PREVIEW})}/><OB st="P1_RC_NEXT" lb="I will do this later" nx="P1_VAL_NEXT"/></>;
+      case 'P1_VAL_NEXT':return s.sel['P1_RC_NEXT']==='I will do this later'?<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> No problem, I am here whenever you are ready.</div></>:<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Let us make sure your users can find catalog items. I will walk you through this step by step.<br/>First things first. Do you have the catalog admin or search admin role on this instance?</div><OB st="P1_VAL_NEXT" lb="Yes, I have the right roles" nx="P1_VAL_PROMPT"/><OB st="P1_VAL_NEXT" lb="I am not sure" nx="P1_VAL_PROMPT"/></>;
+      case 'P1_VAL_PROMPT':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> {s.sel['P1_VAL_NEXT']==='I am not sure'?'No problem — as long as you can access this configuration screen, you should be able to preview results too.':'Good. That means you should be able to see results in preview.'} Go ahead and type a search query in the preview panel on the right. Try something a user would actually request, like "New laptop" or "requesting a new laptop."</div>{s.cs==='P1_VAL_PROMPT'&&<button className="otto-option" onClick={()=>d({type:'P1_VAL_SEARCH',v:'New laptop'})}>Try "New laptop"</button>}</>;
+      case 'P1_VAL_NORESULTS':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> No results for "{s.p1ValQuery}." Let me check your configuration.</div><div className="otto-message-content" style={{marginTop:4}}><ol style={{margin:0,paddingLeft:18,display:'flex',flexDirection:'column',gap:8}}><li>Your current filter condition for this source is <strong>Active = true</strong>. That looks fine.</li><li>But I can also see that the catalog item <strong>"Request New Laptop"</strong> on your instance currently has Active set to false. That item is excluded from your index because of that.</li><li>This is likely why nothing is showing up. You will need to go into the catalog item record and set it back to active, then come back here and try again.</li></ol></div><OB st="P1_VAL_NORESULTS" lb="Take me to the record" nx="P1_VAL_FIX_RETURN" ex={()=>d({type:'P1_VAL_FIX'})}/><OB st="P1_VAL_NORESULTS" lb="I will fix it myself" nx="P1_VAL_FIX_RETURN" ex={()=>d({type:'P1_VAL_FIX'})}/></>;
+      case 'P1_VAL_FIX_RETURN':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Welcome back. Try the same search again in the preview panel and let us see if that fixed it.</div>{s.cs==='P1_VAL_FIX_RETURN'&&<button className="otto-option" onClick={()=>d({type:'P1_VAL_SEARCH',v:'New laptop'})}>Try "New laptop" again</button>}</>;
+      case 'P1_VAL_RESULTS_FOUND':return<OB st="P1_VAL_RESULTS_FOUND" lb="Yes, it is showing now" nx="P1_VAL_DONE"/>;
+      case 'P1_VAL_DONE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> That is it. The item was inactive, which excluded it from the index entirely. Setting it back to active made it available in search.<br/>Your catalog source is ready for Employee Center.</div><OB st="P1_VAL_DONE" lb="Check another item" nx="P1_VAL_FINAL" ex={()=>d({type:'SET_P1VQ',v:''})}/><OB st="P1_VAL_DONE" lb="Look at my result card" nx="P1_VAL_FINAL" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'EP_TAB',v:'Interface'});}}/><OB st="P1_VAL_DONE" lb="I am done" nx="P1_VAL_FINAL" ex={()=>{d({type:'SCR',v:SCREENS.LANDING});d({type:'SET_O',v:false});}}/></>;
+      case 'P1_VAL_FINAL':{
+        const c=s.sel['P1_VAL_DONE'];
+        const msg=c==='Check another item'?'Sure — go ahead and type another query in the preview panel.':c==='Look at my result card'?'Here is your result card configuration for Catalog Items.':'Great, glad I could help. Let me know if you need anything else.';
+        return<div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> {msg}</div>;
+      }
+      case 'P2_APP':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Which application is the issue in?</div><OB st="P2_APP" lb="Employee Center" nx="P2_ISSUE"/><OB st="P2_APP" lb="IT Self-Service Portal" nx="P2_ISSUE"/><OB st="P2_APP" lb="HR Portal" nx="P2_ISSUE"/><OB st="P2_APP" lb="Other" nx="P2_ISSUE"/></>;
+      case 'P2_ISSUE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> What is happening?</div><OB st="P2_ISSUE" lb="I am not seeing any results" nx="P2_QUERY"/><OB st="P2_ISSUE" lb="Results look wrong or incomplete" nx="P2_QUERY"/><OB st="P2_ISSUE" lb="Results are showing for the wrong content" nx="P2_QUERY"/></>;
+      case 'P2_QUERY':return id===s.cs?<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> What did you search for?</div><div className="otto-source-input"><label>Search query</label><input value={s.ottoInput} onChange={e=>d({type:'SET_OI',v:e.target.value})} placeholder="Type your search and press Enter"/></div></>:<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> What did you search for?</div></>;
+      case 'P2_DIAGNOSE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Your knowledge base source finished indexing 3 days ago, so content should be available.<br/>The most common reasons results do not appear after a successful index are:</div><OB st="P2_DIAGNOSE" lb="Filter conditions are too restrictive" nx="P2_FILTER"/><OB st="P2_DIAGNOSE" lb="Body field is mapped incorrectly" nx="P2_FILTER"/><OB st="P2_DIAGNOSE" lb="Source is not linked to this application" nx="P2_FILTER"/></>;
+      case 'P2_FILTER':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Your current filter for this source is <strong>Active = true</strong>.<br/>For the Knowledge table, articles are controlled by <strong>workflow_state = published</strong>, not the active flag. Active records can still be in draft or retired state.<br/>Adding <strong>workflow_state = published</strong> will fix this. And because you are narrowing the filter, no reindexing is needed.</div><OB st="P2_FILTER" lb="Open filter conditions" nx="P2_OPEN_SOURCE" ex={()=>{d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});d({type:'SEL_APP',v:'it-self-service'});d({type:'EP_TAB',v:'Sources'});d({type:'SET_O',v:true});}}/><OB st="P2_FILTER" lb="Tell me more about this" nx="P2_OPEN_SOURCE"/></>;
+      case 'P2_OPEN_SOURCE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have opened the source settings for the knowledge source inside the IT Self-Service Portal tab.</div></>;
+      case 'P3_CHECK':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> What do you want to check?</div><OB st="P3_CHECK" lb="See if there are any misconfigurations" nx="P3_MISCONFIG"/><OB st="P3_CHECK" lb="Check indexing status" nx="P3_MISCONFIG"/><OB st="P3_CHECK" lb="See if AI Search is installed and running" nx="P3_MISCONFIG"/></>;
+      case 'P3_MISCONFIG':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I can see one error and one warning on your instance right now.<br/>Errors must be resolved. Warnings can be dismissed if you are aware of them.</div><OB st="P3_MISCONFIG" lb="Walk me through the error" nx="P3_ERROR_DETAIL"/><OB st="P3_MISCONFIG" lb="Tell me about the warning" nx="P3_WARNING"/><OB st="P3_MISCONFIG" lb="What should I fix first" nx="P3_FIX_FIRST"/></>;
+      case 'P3_FIX_FIRST':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Start with the error.<br/>The issue: A search profile is shared across Employee Center and HR Portal. Changes made for one application will affect the other.<br/>The fix is to remove the incorrect association so each application has its own profile.</div><OB st="P3_FIX_FIRST" lb="Take me there" nx="P3_OPEN_ERROR" ex={()=>{d({type:'SCR',v:SCREENS.SYSTEM_HEALTH});d({type:'H_TAB',v:'Configuration Health'});d({type:'SET_O',v:true});}}/><OB st="P3_FIX_FIRST" lb="Explain this more" nx="P3_OPEN_ERROR"/></>;
+      case 'P3_ERROR_DETAIL':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> The error: A search profile is shared across Employee Center and HR Portal. Changes made for one application will affect the other.<br/>The fix is to remove the incorrect association so each application has its own profile.</div><OB st="P3_ERROR_DETAIL" lb="Take me there" nx="P3_OPEN_ERROR" ex={()=>{d({type:'SCR',v:SCREENS.SYSTEM_HEALTH});d({type:'H_TAB',v:'Configuration Health'});d({type:'SET_O',v:true});}}/><OB st="P3_ERROR_DETAIL" lb="Explain this more" nx="P3_OPEN_ERROR"/></>;
+      case 'P3_OPEN_ERROR':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have opened the relevant configuration screen. The System Health tab stays open in the tab bar.</div><OB st="P3_OPEN_ERROR" lb="Save changes" nx="P3_SAVED"/></>;
+      case 'P3_SAVED':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Saved. Running a quick scan on the affected configuration now.<br/>(Scan completes)<br/>The error is resolved and has been removed from Configuration Health.<br/>You still have one warning open.</div><OB st="P3_SAVED" lb="Show me the warning" nx="P3_WARNING"/><OB st="P3_SAVED" lb="I am done for now" nx="P3_WARNING"/></>;
+      case 'P3_WARNING':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> The warning: The HR Policies source has not been reindexed in 47 days. Content may be stale.<br/>This is a warning, not an error. You can dismiss it or take action.</div><OB st="P3_WARNING" lb="Take me to the source" nx="P3_OPEN_SOURCE" ex={()=>{d({type:'SCR',v:SCREENS.SYSTEM_HEALTH});d({type:'H_TAB',v:'Indexing Status'});d({type:'SET_O',v:true});}}/><OB st="P3_WARNING" lb="Dismiss the warning" nx="P3_OPEN_SOURCE"/></>;
+      case 'P3_OPEN_SOURCE':return<><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> I have opened the HR Policies source detail inside Indexing Status. You can review the indexing history and trigger a reindex manually.</div></>;
+      default:return null;
+    }
+  };
+
+  const renderConv=()=>{
+    if(!s.scenario&&!s.cs)return<div className="otto-message"><div className="otto-message-content"><SI size={12} color="var(--green-brand)"/> Hi Richa. I am Otto, your AI Search assistant.</div><div className="otto-message-content">I can help you set up and configure search, troubleshoot issues, and keep your system healthy.</div><div className="otto-message-content">What would you like to do today?</div><button className="otto-option" onClick={()=>{d({type:'SCEN',v:5,cs:'P1_APP'});d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH});}}>Set up or add a new source</button><button className="otto-option" onClick={()=>{d({type:'SCEN',v:5,cs:'P2_APP'});d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH});}}>My search results are not working</button><button className="otto-option" onClick={()=>{d({type:'SCEN',v:5,cs:'P3_CHECK'});d({type:'SCR',v:SCREENS.SYSTEM_HEALTH});}}>Check my system health</button></div>;
+    const ci=steps.indexOf(s.cs);
+    const els=[];
+    for(let i=0;i<=ci&&i<steps.length;i++){
+      els.push(<div key={steps[i]} className="otto-message">{renderStep(steps[i])}</div>);
+      if(steps[i]==='P2_QUERY'&&s.ottoQuery)els.push(<div key="user-p2" className="otto-message user-message"><div className="otto-message-content">{s.ottoQuery}</div></div>);
+      if(steps[i]==='P1_VAL_PROMPT'&&s.p1ValQuery)els.push(<div key="user-p1val1" className="otto-message user-message"><div className="otto-message-content">{s.p1ValQuery}</div></div>);
+      if(steps[i]==='P1_VAL_FIX_RETURN'&&s.p1ValQuery)els.push(<div key="user-p1val2" className="otto-message user-message"><div className="otto-message-content">{s.p1ValQuery}</div></div>);
+    }
+    return els;
+  };
+
+  return(
+    <div className={`otto-panel-wrapper ${s.ottoOpen?'open':''}`}>
+      <div className="otto-panel">
+        <div className="otto-header">
+          <button className="otto-header-btn" onClick={()=>d({type:'SET_O',v:false})} title="Close"><XI size={12}/></button>
+          <span className="otto-header-icon"><SI size={14}/></span>
+          <span className="otto-header-title">Otto</span>
+          <button className="otto-header-btn" onClick={()=>d({type:'SET_O',v:false})} title="Close"><XI size={12}/></button>
+        </div>
+        <div className="otto-steps-row"><span className="otto-steps-label"><SI size={10} color="var(--green-brand)"/> AI steps <CRI size={10}/></span></div>
+        <div className="otto-conversation" ref={ref}>{renderConv()}</div>
+        <div className="otto-input-bar">
+          <div className="otto-input-row"><span style={{color:'var(--text-muted)',display:'flex'}}><PlI size={14}/></span><input className="otto-input-field" value={s.ottoInput} placeholder={s.cs==='P1_TABLE'?'Type a table name and press Enter':s.cs==='P2_QUERY'?'Type your search and press Enter':'Ask Otto anything or search'} readOnly={s.cs!=='P1_TABLE'&&s.cs!=='P2_QUERY'} onChange={e=>d({type:'SET_OI',v:e.target.value})} onKeyDown={e=>{if(e.key==='Enter'&&(s.cs==='P1_TABLE'||s.cs==='P2_QUERY')&&s.ottoInput.trim())d({type:'SUB_OI'});}}/>{(s.cs==='P1_TABLE'||s.cs==='P2_QUERY')?<div className="otto-input-mic" onClick={()=>{if(s.ottoInput.trim())d({type:'SUB_OI'});}}><SendI size={14}/></div>:<div className="otto-input-mic"><MiI size={14}/></div>}</div>
+          <div className="otto-disclaimer">Be sure to check AI-generated content</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* Screens */
+const Landing=({s,d})=>{
+  return<div className="screen-enter"><div className="page-content">
+    <div className="landing-banner">
+      <button className="landing-banner-close" onClick={()=>{}}><XI size={14}/></button>
+      <div className="landing-banner-header"><Pill status="onboarding" label="Onboarding"/><div className="landing-banner-title">Get started with AI Search</div></div>
+      <div className="landing-banner-desc">Set up AI Search across your organization's applications with a guided setup, or let AI configure it for you. During setup, you can expect:</div>
+      <div className="landing-step-pills">
+        <span className="landing-step-pill pending">Choose application</span>
+        <span className="landing-step-pill pending">Add sources</span>
+        <span className="landing-step-pill pending">Tune search results</span>
+        <span className="landing-step-pill pending">Edit search interface</span>
+        <span className="landing-step-pill pending">Validate</span>
+      </div>
+      <div className="landing-banner-actions">
+        <button className="landing-banner-btn primary" onClick={()=>d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH})}>Configure manually</button>
+        <button className="landing-banner-btn ai" onClick={()=>{d({type:'SET_O',v:true});d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH});}}><SI size={14} color="#fff"/> Configure using AI</button>
+        <button className="landing-banner-btn ghost" onClick={()=>d({type:'SET_O',v:true})}><SI size={14} color="var(--text-primary)"/> Get help</button>
+      </div>
+    </div>
+    <div className="landing-grid">
+      <div className="card landing-card landing-grid-sys" style={{cursor:'pointer'}} onClick={()=>d({type:'SCR',v:SCREENS.SYSTEM_HEALTH})}>
+        <div className="landing-card-header"><Pill status="attention"/><span style={{color:'var(--text-secondary)'}}><AUR size={18}/></span></div>
+        <div className="landing-card-title-row"><HW size={20} color="var(--green-brand)"/><span style={{fontSize:16,fontWeight:600}}>System Health</span><span className="text-sm" style={{color:'var(--text-muted)',marginLeft:'auto'}}>Last updated 5 minutes ago</span></div>
+        <div className="landing-health-row"><span>System status</span><Pill status="attention"/></div>
+        <div className="landing-health-row"><span>Configuration health</span><Pill status="error"/></div>
+        <div className="landing-health-row"><span>Indexing status</span><Pill status="healthy"/></div>
+      </div>
+      <div className="card landing-card landing-grid-mid card-clickable" onClick={()=>d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH})}>
+        <div className="landing-card-header"><Pill status="info" label="6 search applications active"/><span style={{color:'var(--text-secondary)'}}><AUR size={18}/></span></div>
+        <div className="landing-card-title-row"><CfI size={20}/><span style={{fontSize:16,fontWeight:600}}>Configure search</span></div>
+        <div className="landing-card-subtitle">Configure sources, results and search interface for your search applications.</div>
+      </div>
+      <div className="card landing-card landing-grid-mid">
+        <div className="landing-card-header"><Pill status="configured"/><span style={{color:'var(--text-secondary)'}}><AUR size={18}/></span></div>
+        <div className="landing-card-title-row"><ExI size={20}/><span style={{fontSize:16,fontWeight:600}}>External Content Connectors</span></div>
+        <div className="landing-card-subtitle">Connect and manage third-party content sources for AI Search.</div>
+      </div>
+    </div>
+    <div className="landing-resources-horizontal">
+      <div className="landing-resource-list">
+        <div className="landing-resource-item"><div className="landing-resource-icon"><DocI size={14}/></div>Documentation</div>
+        <div className="landing-resource-item"><div className="landing-resource-icon"><ChatI size={14}/></div>Ask questions on the forum</div>
+        <div className="landing-resource-item"><div className="landing-resource-icon"><VidI size={14}/></div>Watch the introduction video</div>
+      </div>
+    </div>
+  </div></div>;
+};
+
+const AppIcon=({type,size=28})=>{
+  const s={width:size,height:size,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:'1.5'};
+  if(type==='Portal')return<svg {...s}><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>;
+  if(type==='Workspace')return<svg {...s}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>;
+  if(type==='Mobile')return<svg {...s}><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="10" y1="18" x2="14" y2="18"/></svg>;
+  return<svg {...s}><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>;
+};
+const EyeI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="2.5"/><path d="M1.5 7s2-4.5 5.5-4.5 5.5 4.5 5.5 4.5-2 4.5-5.5 4.5S1.5 7 1.5 7Z"/></svg>;
+const GridI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="2" width="4" height="4" rx="1"/><rect x="8" y="2" width="4" height="4" rx="1"/><rect x="2" y="8" width="4" height="4" rx="1"/><rect x="8" y="8" width="4" height="4" rx="1"/></svg>;
+const FunnelI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 3h12M3 7h8M5 11h4"/></svg>;
+
+const ConfigSearch=({s,d})=>{
+  const statusMap={Active:'active-status',Draft:'not-configured'};
+  return<div className="screen-enter"><div className="page-content" style={{paddingTop:24}}>
+    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:20}}>
+      <div>
+        <div className="text-2xl" style={{marginBottom:4}}>Configure search</div>
+        <div className="text-md" style={{color:'var(--text-secondary)'}}>Available Applications <span style={{color:'var(--text-muted)'}}>{DATA.applications.length}</span></div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',width:32,height:32,borderRadius:'var(--radius-md)',border:'1px solid var(--border-light)',background:'var(--bg-card)',color:'var(--text-secondary)',cursor:'pointer'}}><SrI size={14}/></div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'center',width:32,height:32,borderRadius:'var(--radius-md)',border:'1px solid var(--border-light)',background:'var(--bg-card)',color:'var(--text-secondary)',cursor:'pointer'}}><FunnelI size={14}/></div>
+        <div style={{display:'flex',alignItems:'center',gap:6,border:'1px solid var(--border-light)',borderRadius:'var(--radius-md)',padding:'6px 10px',background:'var(--bg-card)',color:'var(--text-secondary)',fontSize:12,cursor:'pointer'}}><GridI size={14}/> Grid <CDI size={10}/></div>
+      </div>
+    </div>
+    <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+      <div style={{display:'flex',alignItems:'center',gap:6,background:'var(--bg-card)',border:'1px solid var(--border-light)',borderRadius:'var(--radius-md)',padding:'6px 10px',fontSize:12,color:'var(--text-primary)',cursor:'pointer'}}>Type: All <CDI size={10}/></div>
+      <div style={{display:'flex',alignItems:'center',gap:6,background:'var(--bg-card)',border:'1px solid var(--border-light)',borderRadius:'var(--radius-md)',padding:'6px 10px',fontSize:12,color:'var(--text-primary)',cursor:'pointer'}}>Status: Active <CDI size={10}/></div>
+      <div style={{display:'flex',alignItems:'center',gap:8,background:'var(--bg-card)',border:'1px solid var(--border-light)',borderRadius:'var(--radius-md)',padding:'6px 10px',fontSize:12,color:'var(--text-primary)'}}><Tog on={true}/> Otto Integration</div>
+    </div>
+    <div className="app-cards-grid">{DATA.applications.map(a=>{
+      const status=a.id==='customer-service-portal'?'Draft':'Active';
+      return<div key={a.id} className="card app-card card-clickable" onClick={()=>{d({type:'SEL_APP',v:a.id});d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});}}>
+        <div className="app-card-top">
+          <div className="app-card-icon"><AppIcon type={a.type}/></div>
+          <div className="app-card-status"><Pill status={statusMap[status]} label={status}/><span style={{color:'var(--text-muted)',display:'flex'}}><EyeI size={12}/></span></div>
+        </div>
+        <div className="app-card-name">{a.name}</div>
+        <div className="app-card-meta-row"><span style={{display:'flex',alignItems:'center',gap:4}}><svg width={12} height={12} viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="6"/><polyline points="7,3 7,7 10,9"/></svg> Modified {a.modified}</span><span style={{display:'flex',alignItems:'center',gap:4}}><CCI size={11} color="var(--green-brand)"/> Otto</span><span style={{display:'flex',alignItems:'center',gap:4}}><SrI size={12}/> {a.searchMode}</span></div>
+      </div>;
+    })}</div>
+  </div></div>;
+};
+
+const DragI=({size=14})=><svg width={size} height={size} viewBox="0 0 14 14" fill="currentColor"><circle cx="3" cy="5" r="1.2"/><circle cx="3" cy="9" r="1.2"/><circle cx="6" cy="5" r="1.2"/><circle cx="6" cy="9" r="1.2"/></svg>;
+const MapPill=({field,onSave,onRemove})=>{
+  const [editing,setEditing]=useState(false);
+  const [val,setVal]=useState(field.mapping);
+  useEffect(()=>{setVal(field.mapping);},[field.mapping]);
+  const commit=()=>{onSave(val.trim()||field.mapping);setEditing(false);};
+  if(editing)return<span style={{display:'inline-flex',alignItems:'center',border:'1px solid var(--green-brand)',borderRadius:'var(--radius-pill)',padding:'3px 10px',background:'var(--bg-card)'}}>
+    <input autoFocus value={val} onChange={e=>setVal(e.target.value)} onBlur={commit} onKeyDown={e=>{if(e.key==='Enter')commit();}} style={{border:'none',outline:'none',fontSize:11,width:Math.max(70,val.length*6.5),background:'transparent',color:'var(--text-primary)'}}/>
+  </span>;
+  return<span onClick={()=>setEditing(true)} style={{display:'inline-flex',alignItems:'center',gap:6,border:'1px solid var(--border-medium)',borderRadius:'var(--radius-pill)',padding:'3px 10px',fontSize:11,color:'var(--text-secondary)',background:'var(--bg-card)',cursor:'pointer',whiteSpace:'nowrap'}}>
+    {field.mapping}
+    {onRemove&&<span onClick={e=>{e.stopPropagation();onRemove();}} style={{color:'var(--text-muted)',display:'flex'}}><XI size={9}/></span>}
+  </span>;
+};
+const EditInterface=({s,d})=>{
+  const [tab,setTab]=useState('Result cards');
+  const leftTabs=['Filters','Result cards','Click behavior','Genius result'];
+  const rightTabs=['Search box & autocomplete','Filters','Genius result','Sorting','Result card'];
+  const mapTab={'Filters':'Filters','Result cards':'Result card','Click behavior':'Sorting','Genius result':'Genius result'};
+  const rTab=mapTab[tab]||'Result card';
+  const setBoth=(t)=>{setTab(t);};
+  const filters=[{name:'Source',order:1},{name:'Category',order:2},{name:'Author',order:3},{name:'Published Date',order:4}];
+  const templates=[{name:'People',applies:'3 sources',cond:'False'},{name:'Document',applies:'10 sources',cond:'False'},{name:'Archived document',applies:'1 source',cond:'True'},{name:'Article',applies:'2 sources',cond:'False'},{name:'Media',applies:'10 sources',cond:'False'},{name:'Request',applies:'0 sources',cond:'False'},{name:'Catalog Item',applies:'1 source',cond:'False'}];
+  const [rcFields,setRcFields]=useState([
+    {id:'title',label:'Title',mapping:'sc_catalog.short_description'},
+    {id:'description',label:'Body',mapping:'sc_catalog.description'},
+    {id:'action',label:'Button',mapping:'sc_catalog.actions'}
+  ]);
+  const removeRc=(id)=>setRcFields(rcFields.filter(f=>f.id!==id));
+  const addRc=()=>setRcFields([...rcFields,{id:'f'+Date.now(),label:'New field',mapping:'sc_catalog.'}]);
+  const saveRc=(id,mapping)=>setRcFields(rcFields.map(f=>f.id===id?{...f,mapping}:f));
+  return<div>
+    {s.uc1Src&&<div style={{display:'flex',alignItems:'center',gap:10,background:'var(--green-bg)',border:'1px solid var(--green-brand)',borderRadius:'var(--radius-md)',padding:'10px 14px',marginBottom:16,fontSize:13,color:'var(--text-primary)'}}><CCI size={16} color="var(--green-brand)"/><div><strong>Configuring result card for {s.uc1Src.name}</strong> — make sure the fields shown in search results match what employees need for catalog items.</div></div>}
+    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}>
+      <div>
+        <div style={{fontSize:18,fontWeight:600,color:'var(--text-primary)',marginBottom:4}}>Edit Search Interface</div>
+        <div style={{fontSize:13,color:'var(--text-secondary)'}}>Customize layout and functionality of the search for end users.</div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:8,fontSize:13,color:'var(--text-primary)'}}><Tog on={true}/> Interface Guide</div>
+    </div>
+    {tab==='Result cards'?
+    <div className="card edit-interface-card">
+      <div className="edit-interface-tabs">
+        {leftTabs.map(t=><div key={t} className={`edit-interface-tab ${tab===t?'active':''}`} onClick={()=>setBoth(t)}>{t}</div>)}
+      </div>
+      <div style={{marginTop:16}}>
+        <div style={{fontSize:14,fontWeight:600,color:'var(--text-primary)',marginBottom:8}}>Interface Guide</div>
+        <div style={{border:'1px solid var(--border-light)',borderRadius:'var(--radius-md)',padding:16,background:'var(--bg-page)',marginBottom:20}}>
+          <div className="edit-preview-result-card">
+            <div className="edit-preview-search-row"><span>Search</span><SrI size={12}/></div>
+            <div className="edit-preview-result-list">
+              <div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/>
+              <div className="edit-preview-result-box" style={{border:'2px solid var(--green-brand)',background:'var(--green-bg)'}}>
+                <div className="edit-preview-result-square"/>
+                <div style={{flex:1}}>
+                  <div className="edit-preview-result-line"/><div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/>
+                </div>
+              </div>
+              <div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/>
+            </div>
+          </div>
+          <div style={{marginTop:12,display:'flex',gap:10}}>
+            <div style={{width:18,height:18,borderRadius:'50%',border:'1px solid var(--green-brand)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--green-brand)'}}><SI size={10}/></div>
+            <div><div style={{fontSize:13,fontWeight:600,color:'var(--text-primary)',marginBottom:4}}>Result card</div><div style={{fontSize:12,color:'var(--text-secondary)',lineHeight:1.5}}>This is how the result card is displayed in AI Search.</div></div>
+          </div>
+        </div>
+        <div style={{fontSize:14,fontWeight:600,color:'var(--text-primary)',marginBottom:12}}>Result card fields</div>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {rcFields.map(f=><div key={f.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'var(--bg-page)',border:'1px solid var(--border-light)',borderRadius:'var(--radius-md)',padding:'10px 12px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <span style={{fontWeight:500,color:'var(--text-primary)',fontSize:13,minWidth:110}}>{f.label}</span>
+              <span style={{background:'var(--green-bg)',border:'1px solid var(--green-brand)',borderRadius:'var(--radius-pill)',padding:'4px 10px',fontSize:12,color:'var(--green-text)'}}>{f.mapping}</span>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:8,color:'var(--text-muted)'}}>
+              <span style={{cursor:'pointer'}}><EdI size={12}/></span>
+              <span style={{cursor:'pointer'}} onClick={()=>removeRc(f.id)}><XI size={12}/></span>
+            </div>
+          </div>)}
+        </div>
+        <button style={{marginTop:14,display:'flex',alignItems:'center',gap:6,background:'#1B1B19',color:'#fff',border:'none',borderRadius:'var(--radius-md)',padding:'10px 14px',fontSize:13,fontWeight:500,cursor:'pointer'}} onClick={addRc}><span style={{fontSize:16}}>+</span> Add field</button>
+      </div>
+    </div>:
+    <div className="edit-interface-grid">
+      <div className="card edit-interface-card">
+        <div className="edit-interface-tabs">
+          {leftTabs.map(t=><div key={t} className={`edit-interface-tab ${tab===t?'active':''}`} onClick={()=>setBoth(t)}>{t}</div>)}
+        </div>
+        {tab==='Filters'&&<div className="edit-filter-list">
+          <div className="edit-filter-header"><span>Template</span><span>Order</span></div>
+          {filters.map(f=><div key={f.name} className="edit-filter-item">
+            <div style={{display:'flex',alignItems:'center',gap:10}}><span style={{color:'var(--text-muted)'}}><DragI/></span><span style={{color:'var(--text-secondary)',display:'flex'}}><EdI size={12}/></span><span style={{fontWeight:500,color:'var(--text-primary)'}}>{f.name}</span></div>
+            <div style={{fontSize:12,color:'var(--text-muted)'}}>{f.order}</div>
+          </div>)}
+          <button className="edit-add-filter-btn"><span style={{fontSize:16}}>+</span> Add filter</button>
+        </div>}
+        {tab==='Click behavior'&&<div style={{padding:40,textAlign:'center',color:'var(--text-muted)',fontSize:13}}>Configure how result cards and links open when users interact with search results.</div>}
+        {tab==='Genius result'&&<div style={{padding:40,textAlign:'center',color:'var(--text-muted)',fontSize:13}}>Configure AI-generated answer cards and summary behavior.</div>}
+      </div>
+      <div className="card edit-preview-card">
+        <div style={{fontSize:15,fontWeight:600,color:'var(--text-primary)',marginBottom:14}}>Interface Guide</div>
+        <div className="edit-preview-tabs">
+          {rightTabs.map(t=><span key={t} className={`edit-preview-tab ${rTab===t?'active':''}`} onClick={()=>{const lt=Object.keys(mapTab).find(k=>mapTab[k]===t)||tab;setTab(lt);}}>{t}</span>)}
+        </div>
+        <div className="edit-preview-frame">
+          {rTab==='Result card'&&<div className="edit-preview-result-card">
+            <div className="edit-preview-search-row"><span>Search</span><SrI size={12}/></div>
+            <div className="edit-preview-result-list">
+              <div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/>
+              <div className="edit-preview-result-box">
+                <div className="edit-preview-result-square"/>
+                <div style={{flex:1}}>
+                  <div className="edit-preview-result-line"/><div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/>
+                </div>
+              </div>
+              <div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/>
+            </div>
+          </div>}
+          {rTab==='Filters'&&<div className="edit-preview-filter-preview">
+            <div className="edit-preview-search-row"><span>Search</span><SrI size={12}/></div>
+            <div style={{display:'flex',gap:12}}>
+              <div className="edit-preview-filter-col"><div className="edit-preview-filter-title">Filters</div><div className="edit-preview-filter-line"/><div className="edit-preview-filter-line short"/><div className="edit-preview-filter-line"/></div>
+              <div style={{flex:1}}><div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/></div>
+            </div>
+          </div>}
+          {rTab!=='Result card'&&rTab!=='Filters'&&<div className="edit-preview-generic"><div className="edit-preview-search-row"><span>Search</span><SrI size={12}/></div><div className="edit-preview-result-line"/><div className="edit-preview-result-line short"/></div>}
+        </div>
+        <div style={{marginTop:16,display:'flex',gap:10}}>
+          <div style={{width:18,height:18,borderRadius:'50%',border:'1px solid var(--border-medium)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-muted)'}}><WI size={10}/></div>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:'var(--text-primary)',marginBottom:4}}>{rTab}</div>
+            <div style={{fontSize:12,color:'var(--text-secondary)',lineHeight:1.5}}>This is how {rTab.toLowerCase()} is displayed in AI Search.</div>
+          </div>
+        </div>
+      </div>
+    </div>}
+  </div>;
+};
+
+const AppDetail=({s,d})=>{
+  const app=DATA.applications.find(a=>a.id===s.selApp)||DATA.applications[0];
+  const baseSrcs=s.scenario===5&&s.selApp==='employee-service-center'?s.p1Sources:(DATA.appSources[s.selApp]||DATA.appSources['employee-portal']);
+  const srcs=[...baseSrcs];
+  if(s.srcAdded&&s.selApp==='employee-portal'&&s.scenario!==5) srcs.push(DATA.newSrc);
+  const n=srcs.length;
+  return<div className="screen-enter ep-detail-screen"><div className="top-bar">
+    <button style={{display:'flex',alignItems:'center',color:'var(--green-brand)',cursor:'pointer'}} onClick={()=>d({type:'TOG_O'})}><SI size={16}/></button>
+    <div className="breadcrumb"><span className="breadcrumb-link" onClick={()=>d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH})}>Configuration</span><span className="breadcrumb-sep">{'>'}</span><span className="breadcrumb-active">{app.name}</span><CDI size={10}/></div>
+  </div><div className={`page-content ${s.epTab==='Review'?'ep-review-page':''}`}>
+    <div className="ep-header"><span className="ep-title">{app.name}</span><Pill status={app.id==='customer-service-portal'?'not-configured':'active-status'} label={app.id==='customer-service-portal'?'Draft':'Active'}/><CDI size={10}/><span className="ep-modified">Modified {app.modified}</span><button className="ep-open-btn">Open <AUR size={12}/></button></div>
+    <div className="ep-tabs">
+      <div className={`ep-tab ${s.epTab==='Sources'?'active':''}`} onClick={()=>d({type:'EP_TAB',v:'Sources'})}>Sources</div>
+      <div className={`ep-tab ${s.epTab==='Tune'?'active':''}`}>Tune Search Results</div>
+      <div className={`ep-tab ${s.epTab==='Interface'?'active':''}`} onClick={()=>d({type:'EP_TAB',v:'Interface'})}>Edit Search Interface</div>
+      <div className={`ep-tab ${s.epTab==='Review'?'active':''}`} onClick={()=>d({type:'EP_TAB',v:'Review'})}>Review and validate</div>
+    </div>
+    {s.epTab==='Sources'&&<>
+      <div className="ep-sources-header">
+        <div className="ep-sources-title">Connected Sources <span className="ep-sources-count">{n}</span></div>
+        <div className="ep-sources-actions">
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}><span style={{fontWeight:500}}>Hybrid Search</span><Tog on={app.searchMode==='Hybrid'}/></div>
+          <button className="ep-add-source-btn" onClick={()=>{d({type:'SET_O',v:true});if(!s.scenario&&s.selApp==='employee-portal')d({type:'SCEN',v:1,cs:'S1_INTRO'});}}><span>Add Source</span><CDI size={10}/></button>
+        </div>
+      </div>
+      <div className="ep-sources-desc">Manage the content sources that power search for this application.</div>
+      {!s.p1RcBannerOff&&s.selApp==='employee-service-center'&&s.p1Sources.some(x=>x.name==='Catalog Items'&&x.semantic==='Indexed')&&<div style={{display:'flex',alignItems:'center',gap:10,background:'var(--green-bg)',border:'1px solid var(--green-brand)',borderRadius:'var(--radius-md)',padding:'10px 14px',marginBottom:16,fontSize:13,color:'var(--text-primary)'}}>
+        <CCI size={16} color="var(--green-brand)"/>
+        <div style={{flex:1}}><strong>Indexing is complete for Catalog Items.</strong> Your source is ready to serve search results.</div>
+        <button style={{background:'#1B1B19',color:'#fff',border:'none',borderRadius:'var(--radius-md)',padding:'8px 14px',fontSize:12,fontWeight:500,cursor:'pointer',whiteSpace:'nowrap'}} onClick={()=>{d({type:'SEL',step:'P1_RESULT_CARD',opt:'This looks good'});d({type:'SEL',step:'P1_RC_NEXT',opt:"Yes, let's validate"});d({type:'SET_CS',v:'P1_VAL_NEXT'});d({type:'SCR',v:SCREENS.SEARCH_PREVIEW});d({type:'SET_O',v:true});}}>Review and validate</button>
+        <button style={{background:'transparent',border:'none',color:'var(--text-muted)',cursor:'pointer',display:'flex'}} onClick={()=>d({type:'P1_RC_BANNER_OFF'})}><XI size={12}/></button>
+      </div>}
+      {s.epBanner&&s.selApp==='employee-portal'&&s.scenario!==5&&<div className="warning-banner"><ECI size={16} color="var(--red)"/><div style={{flex:1}}>Hybrid search is enabled, but you must add semantic fields to your indexed source to use hybrid search. <button style={{fontSize:12,color:'var(--red-text)',fontWeight:500,marginLeft:8,textDecoration:'underline'}}>View all indexed sources</button></div><button className="warning-banner-close" onClick={()=>d({type:'EP_BAN'})}><XI size={12}/></button></div>}
+      <table className="data-table"><thead><tr><th style={{width:30}}></th><th>Source Name</th><th>Table</th><th>Documents</th><th>Keyword Indexing</th><th>Semantic Indexing</th><th>Otto Integration</th></tr></thead>
+      <tbody>{srcs.map((src,i)=>{
+        const isNew=(s.srcAdded||s.p1SrcAdded)&&s.selApp==='employee-portal'&&i===srcs.length-1;
+        const isNewP1=s.p1SrcAdded&&s.selApp==='employee-service-center'&&i===srcs.length-1;
+        return<tr key={i} className={(isNew||isNewP1)?'new-row-highlight':''}>
+          <td style={{color:'var(--text-muted)'}}><EdI size={12}/></td>
+          <td style={{fontWeight:500,cursor:'pointer'}}>{src.name}</td>
+          <td style={{color:'var(--text-secondary)',fontSize:12}}>{src.table}</td>
+          <td>{src.documents?src.documents.toLocaleString():(isNewP1&&src.documentsPerSecond?<span style={{color:'var(--blue)',fontSize:12}}>Indexing {src.documentsPerSecond.toLocaleString()} docs/sec</span>:<span style={{color:'var(--blue)',fontSize:12}}>Indexing...</span>)}</td>
+          <td>{src.keyword==='Indexed'?<Pill status="healthy" label="Indexed"/>:<span style={{color:'var(--blue)',fontSize:12}}>{src.keyword} {src.semanticEta}</span>}</td>
+          <td>{src.semantic==='Indexed'?<Pill status="healthy" label="Indexed"/>:<span style={{color:'var(--blue)',fontSize:12}}>In Progress {src.semanticEta}</span>}</td>
+          <td><Tog on={src.otto}/></td>
+        </tr>;
+      })}</tbody></table>
+      <div className="ep-pagination"><span>Showing 1-{n} of {n}</span></div>
+    </>}
+    {s.epTab==='Interface'&&<EditInterface s={s} d={d}/>}
+    {s.epTab==='Review'&&<SearchPreviewContent s={s} d={d}/>}
+  </div></div>;
+};
+
+const SysHealth=({s,d})=>{
+  const t=s.hTab;
+  return<div className="screen-enter"><div className="top-bar">
+    <button style={{display:'flex',alignItems:'center',color:'var(--green-brand)',cursor:'pointer'}} onClick={()=>d({type:'TOG_O'})}><SI size={16}/></button>
+    <span className="top-bar-title">System Health</span>
+  </div><div className="page-content">
+    <div className="text-2xl" style={{marginBottom:20}}>System Health</div>
+    <div className="sh-tabs">{['Overview','System Status','Configuration Health','Indexing Status'].map(tb=><div key={tb} className={`sh-tab ${t===tb?'active':''}`} onClick={()=>d({type:'H_TAB',v:tb})}>{tb}</div>)}</div>
+    {t==='Overview'&&<SHOver s={s} d={d}/>}
+    {t==='System Status'&&<SHSys/>}
+    {t==='Configuration Health'&&<SHConf s={s}/>}
+    {t==='Indexing Status'&&<SHIdx/>}
+  </div></div>;
+};
+const SHOver=({s,d})=><>
+  <div className="sh-overview-top">
+    <div className="card sh-metric-card"><div className="sh-metric-card-title">Search Health</div><div className="sh-metric-card-desc">Reflects the current state of search on your system</div><div className="sh-metric-card-value" style={{color:'var(--green-text)'}}><span style={{display:'flex',alignItems:'center',gap:6}}><HW size={20} color="var(--green-brand)"/> Running</span></div><div className="sh-metric-card-note">Search is operating.</div></div>
+    <div className="card sh-metric-card"><div className="sh-metric-card-title">Required Actions</div><div className="sh-metric-card-desc">Actions required regarding system health</div><div className="sh-metric-card-value">3</div><div className="sh-metric-card-note">Three required actions to address errors across all health areas.</div></div>
+  </div>
+  <div className="sh-overview-bottom">
+    <div className="card sh-status-card status-attention"><Pill status="attention"/><div style={{fontSize:14,fontWeight:600,margin:'8px 0 4px'}}>System Status</div><div style={{fontSize:12,color:'var(--text-secondary)'}}>Installation status of AI Search + Otto</div><div className="sh-status-card-counts"><div className="sh-status-card-count-item"><span className="sh-status-card-count-label">Errors</span><span className="sh-status-card-count-num">0</span></div><div className="sh-status-card-count-item"><span className="sh-status-card-count-label">Warnings</span><span className="sh-status-card-count-num">2</span></div></div><div style={{fontSize:12,color:'var(--text-secondary)'}}>Search running. 2 warnings require attention.</div></div>
+    <div className="card sh-status-card status-error"><Pill status="error"/><div style={{fontSize:14,fontWeight:600,margin:'8px 0 4px'}}>Configuration Health</div><div style={{fontSize:12,color:'var(--text-secondary)'}}>Automated checks for detection</div><div className="sh-status-card-counts"><div className="sh-status-card-count-item"><span className="sh-status-card-count-label">Errors</span><span className="sh-status-card-count-num">3</span></div><div className="sh-status-card-count-item"><span className="sh-status-card-count-label">Warnings</span><span className="sh-status-card-count-num">5</span></div></div><div style={{fontSize:12,color:'var(--text-secondary)'}}>Search config has 3 errors and 5 warnings.</div></div>
+    <div className="card sh-status-card status-healthy"><Pill status="healthy"/><div style={{fontSize:14,fontWeight:600,margin:'8px 0 4px'}}>Indexing Status</div><div style={{fontSize:12,color:'var(--text-secondary)'}}>Status of indexing progresses across sources</div><div className="sh-status-card-counts"><div className="sh-status-card-count-item"><span className="sh-status-card-count-label">Errors</span><span className="sh-status-card-count-num">0</span></div><div className="sh-status-card-count-item"><span className="sh-status-card-count-label">Warnings</span><span className="sh-status-card-count-num">0</span></div></div><div style={{fontSize:12,color:'var(--text-secondary)'}}>Search index is healthy.</div></div>
+  </div>
+  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}><div style={{fontSize:16,fontWeight:600,display:'flex',alignItems:'center',gap:8}}>Suggested Actions <span className="ep-sources-count">10</span></div><div style={{display:'flex',gap:8}}><button style={{border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)',padding:'4px 8px',background:'var(--bg-card)',display:'flex',alignItems:'center'}}><SrI size={12}/></button><button style={{border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)',padding:'4px 8px',background:'var(--bg-card)',display:'flex',alignItems:'center'}}><FtI size={12}/></button></div></div>
+  <table className="data-table"><thead><tr><th>Description</th><th>Issue recognized</th><th>Impact Scope</th><th>Health area</th></tr></thead><tbody>{DATA.suggestedActions.map((a,i)=><tr key={i}><td style={{fontWeight:500}}>{a.description}</td><td style={{fontSize:12,color:'var(--text-secondary)'}}>{a.date}</td><td style={{fontSize:12}}>{a.scope}</td><td style={{fontSize:12}}>{a.area}</td></tr>)}</tbody></table>
+  <div className="ep-pagination"><span>Showing 1-4 of 10</span><span style={{fontSize:11,color:'var(--text-muted)'}}>Records per page: 4</span></div>
+</>;
+const SHSys=()=><div className="card" style={{padding:20}}><div style={{fontSize:14,fontWeight:600,marginBottom:12}}>System Status Details</div><div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:16}}>Installation and operational status of AI Search components.</div><div style={{display:'flex',flexDirection:'column',gap:8}}><div style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border-light)'}}><span>AI Search Plugin</span><Pill status="healthy" label="Installed"/></div><div style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border-light)'}}><span>Otto Agent</span><Pill status="healthy" label="Active"/></div><div style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border-light)'}}><span>Semantic Search</span><Pill status="attention" label="Partial"/></div><div style={{display:'flex',justifyContent:'space-between',padding:'8px 0'}}><span>Knowledge Graph</span><Pill status="attention" label="Not Installed"/></div></div></div>;
+const SHConf=({s})=>{
+  const w=DATA.chWarnings.filter(x=>!(s.warnOff&&x.dismissTarget));
+  return<div><div style={{fontSize:14,fontWeight:600,marginBottom:12,color:'var(--red)'}}>Errors ({DATA.chErrors.length})</div>{DATA.chErrors.map(e=><div key={e.id} className="card ch-card ch-error"><ECI size={16} color="var(--red)"/><div className="ch-card-content"><div className="ch-card-title">{e.title}</div><div className="ch-card-scope">{e.scope}</div><div className="ch-card-desc">{e.desc}</div><span className="ch-card-action">Redirect to fix →</span></div></div>)}<div style={{fontSize:14,fontWeight:600,marginBottom:12,marginTop:20,color:'var(--amber)'}}>Warnings ({w.length})</div>{w.map(x=><div key={x.id} className={`card ch-card ch-warning`}><WI size={16} color="var(--amber)"/><div className="ch-card-content"><div className="ch-card-title">{x.title}</div><div className="ch-card-scope">{x.scope}</div><div className="ch-card-desc">{x.desc}</div></div><button className="ch-card-dismiss"><XI size={12}/></button></div>)}</div>;
+};
+const SHIdx=()=><>
+  <div className="idx-metrics-row">
+    <div className="card sh-metric-card"><div style={{fontSize:11,color:'var(--text-muted)',marginBottom:4}}>Just now</div><div className="sh-metric-card-title">Index Health</div><div className="sh-metric-card-desc">Reflects overall index health</div><div className="sh-metric-card-value" style={{color:'var(--green-text)'}}><span style={{display:'flex',alignItems:'center',gap:6}}><HW size={18} color="var(--green-brand)"/> Healthy</span></div><div className="sh-metric-card-note">Indexing running normally.</div></div>
+    <div className="card sh-metric-card"><div style={{fontSize:11,color:'var(--text-muted)',marginBottom:4,display:'flex',alignItems:'center',gap:6}}><HW size={12} color="var(--green-brand)"/> Running 09:23</div><div className="sh-metric-card-title">Indexing Rate</div><div className="sh-metric-card-desc">Speed sources indexed</div><div style={{display:'flex',gap:24}}><div><div className="sh-metric-card-value">120</div><div style={{fontSize:11,color:'var(--text-muted)'}}>docs/s Daily</div></div><div><div className="sh-metric-card-value">118</div><div style={{fontSize:11,color:'var(--text-muted)'}}>docs/s Last Hour</div></div></div><div className="sh-metric-card-note" style={{marginTop:8}}>At above average stable level.</div></div>
+    <div className="card sh-metric-card"><div style={{fontSize:11,color:'var(--text-muted)',marginBottom:4,display:'flex',alignItems:'center',gap:6}}><HW size={12} color="var(--green-brand)"/> Healthy 09:23</div><div className="sh-metric-card-title">Memory</div><div className="sh-metric-card-desc">Available memory for indexed sources</div><div className="sh-metric-card-value">50%</div><div style={{fontSize:11,color:'var(--text-muted)'}}>Occupied Memory</div><div className="sh-metric-card-note">Indexed sources occupy 50% of available memory.</div></div>
+  </div>
+  <div className="idx-metrics-row-2">
+    <div className="card sh-metric-card"><div style={{fontSize:11,color:'var(--text-muted)',marginBottom:4}}>Just now</div><div className="sh-metric-card-title">Indexing Queue Status</div><div className="sh-metric-card-desc">Reflects queue of ongoing and pending processes</div><div style={{display:'flex',flexDirection:'column',gap:4,fontSize:12,color:'var(--text-secondary)'}}><div style={{display:'flex',justifyContent:'space-between'}}><span>Indexing Queue Size</span><span style={{color:'var(--text-muted)'}}>—</span></div><div style={{display:'flex',justifyContent:'space-between'}}><span>Pending Processes</span><span style={{color:'var(--text-muted)'}}>—</span></div><div style={{display:'flex',justifyContent:'space-between'}}><span>Indexed Documents</span><span style={{color:'var(--text-muted)'}}>—</span></div></div></div>
+    <div className="card sh-metric-card"><div style={{fontSize:11,color:'var(--text-muted)',marginBottom:4}}>Just now</div><div className="sh-metric-card-title">Indexing Queue Trend Line</div><div style={{fontSize:24,fontWeight:700,marginBottom:2}}>358 GB</div><div style={{fontSize:12,color:'var(--green-text)',marginBottom:12}}>-6% since yesterday</div><svg width="100%" height="40" viewBox="0 0 300 40" preserveAspectRatio="none"><polyline points="0,30 30,25 60,28 90,20 120,22 150,18 180,15 210,20 240,14 270,16 300,12" fill="none" stroke="var(--green-brand)" strokeWidth="2"/><polyline points="0,30 30,25 60,28 90,20 120,22 150,18 180,15 210,20 240,14 270,16 300,12 300,40 0,40" fill="rgba(0,201,80,0.08)" stroke="none"/></svg><div style={{fontSize:12,color:'var(--text-secondary)',marginTop:8,cursor:'pointer'}}>Top Contributors ∨</div></div>
+  </div>
+  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}><div style={{fontSize:16,fontWeight:600,display:'flex',alignItems:'center',gap:8}}>Indexed Sources <span className="ep-sources-count">50</span></div></div>
+  <table className="data-table"><thead><tr><th style={{width:80}}>Action</th><th>Status</th><th>Source Name</th><th>Table</th><th>Keyword Indexing</th><th>Semantic Indexing</th><th style={{width:100}}>Progress</th><th>Document Count</th></tr></thead>
+  <tbody>{DATA.idxSources.map((x,i)=><tr key={i}>
+    <td>{x.action==='fix'?<button style={{background:'#1B1B19',color:'#fff',borderRadius:6,padding:'3px 10px',fontSize:11,fontWeight:500}}>Fix now</button>:x.action==='review'?<button style={{border:'1px solid var(--border-medium)',borderRadius:6,padding:'3px 10px',fontSize:11,background:'var(--bg-card)',display:'flex',alignItems:'center',gap:4}}>Review <CDI size={8}/></button>:<span style={{color:'var(--text-muted)'}}>—</span>}</td>
+    <td><Pill status={x.status}/></td>
+    <td style={{fontWeight:500,maxWidth:150,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{x.name}</td>
+    <td style={{fontSize:12,color:'var(--text-secondary)'}}>{x.table}</td>
+    <td>{x.keyword==='Indexed'?<span style={{color:'var(--green-text)',fontSize:12}}>Indexed</span>:x.keyword==='Error'?<Pill status="error"/>:<span style={{color:'var(--blue)',fontSize:12}}>In Progress {x.kEta}</span>}</td>
+    <td>{x.semantic==='Indexed'?<span style={{color:'var(--green-text)',fontSize:12}}>Indexed</span>:x.semantic==='Error'?<Pill status="error"/>:x.semantic==='Warning'?<Pill status="attention" label="Warning"/>:<span style={{color:'var(--blue)',fontSize:12}}>In Progress {x.sEta}</span>}</td>
+    <td><PB pct={x.progress} ip={x.progress<100}/></td>
+    <td style={{fontSize:12}}>{x.cur.toLocaleString()} / {x.tot.toLocaleString()}</td>
+  </tr>)}</tbody></table>
+</>;
+
+const SearchPreviewContent=({s,d})=>{
+  const showRef=s.refOpen;
+  const sp=DATA.sp;const dt=sp.detail;
+  const isS3=s.scenario===3;
+  const q=isS3?'flexible working policy':sp.query;
+  const tTitle=isS3?'Flexible Work Arrangement Guide':sp.top.title;
+  const tDesc=isS3?'Comprehensive guide to flexible and remote working arrangements, including eligibility criteria, application process, and manager approval workflows.':sp.top.desc;
+  return<>
+    <div className="sp-controls">
+      <div className="sp-control-select">Semantic search mode <CDI size={10}/></div>
+      <div className="sp-control-select">Search quality <CDI size={10}/></div>
+      <button style={{border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)',padding:'5px 8px',background:'var(--bg-card)',display:'flex',alignItems:'center'}}><FtI size={12}/></button>
+      <div className="sp-search-input"><SrI size={12}/><input defaultValue={q}/><button style={{color:'var(--text-muted)'}}><XI size={10}/></button></div>
+      <button className="sp-refresh-btn"><RfI size={12}/> Refresh query</button>
+    </div>
+    <div className="sp-filter-pills"><span className="sp-filter-pill">Knowledge bases (3+) <button><XI size={8}/></button></span><span className="sp-filter-pill">Purchasing (2+) <button><XI size={8}/></button></span><span className="sp-filter-pill">Created by 3 <button><XI size={8}/></button></span><span className="sp-filter-pill">Active records <button><XI size={8}/></button></span><span className="sp-filter-pill">Last 90 days <button><XI size={8}/></button></span><span className="sp-clear-all">Clear all</span></div>
+    <div className="sp-layout">
+      {showRef&&<div className="sp-refine"><div className="sp-refine-header">Refine list <button onClick={()=>d({type:'REF',v:false})}><XI size={10}/></button></div><div className="sp-refine-section"><div className="sp-refine-section-title">Source</div><div className="sp-refine-item selected">Knowledge bases (3+)</div><div className="sp-refine-item">Purchasing (2+)</div><div className="sp-refine-item">Supplier (1+)</div><div className="sp-refine-item">Requests (0+)</div><div className="sp-refine-item">Opportunity (1+)</div><div className="sp-refine-item">Box (1+)</div><div style={{fontSize:11,color:'var(--blue)',cursor:'pointer',marginTop:4}}>Show all</div></div><div className="sp-refine-section"><div className="sp-refine-section-title">Created by</div><div className="sp-refine-item">Created by 1</div><div className="sp-refine-item">Created by 2</div><div className="sp-refine-item selected">Created by 3</div></div><div className="sp-refine-section"><div className="sp-refine-section-title">Category</div><div className="sp-refine-item">Category 1</div><div className="sp-refine-item">Category 2</div><div className="sp-refine-item selected">Category 3</div><div className="sp-refine-item">Category 4</div></div><div style={{fontSize:11,color:'var(--blue)',cursor:'pointer'}}>Clear all</div></div>}
+      <div className="sp-results">
+        <div className="sp-results-header">Search results <span className="ep-sources-count">{sp.count}</span></div>
+        <div className="sp-results-subheader">Results for "{q}"</div>
+        <div className="card sp-result-card"><div className="sp-result-badge">{sp.top.type}</div><div className="sp-result-title">{tTitle}</div><div className="sp-result-desc">{tDesc}</div><div className="sp-result-updated">Updated {sp.top.updated}</div><div className="sp-result-scores"><span>Final score: <strong>{sp.top.score.toFixed(3)}</strong></span><span>Match type: <strong>{sp.top.match}</strong></span><span>Language: <strong>{sp.top.lang}</strong></span></div><div className="sp-result-sysid">SysID: 67890FGF... <button><CpI size={10}/> copy</button></div>
+          <div className="sp-why-ranked"><div className="sp-why-ranked-toggle" onClick={()=>d({type:'WHY',v:!s.whyOpen})}>{s.whyOpen?<CDI size={12}/>:<CRI size={12}/>} Why ranked #1?</div>{s.whyOpen&&<div className="sp-why-content"><div style={{fontSize:12,color:'var(--text-secondary)',marginBottom:12}}>This result ranked first due to strong title match in keyword search and high body relevance in semantic search.</div><div className="sp-signal-cards"><div className="sp-signal-card"><div className="sp-signal-card-label">Keyword</div><div className="sp-signal-card-type">Primary</div><div className="sp-signal-card-field">Title</div><div className="sp-signal-card-boost">{sp.top.kwBoost}</div></div><div className="sp-signal-card"><div className="sp-signal-card-label">Semantic</div><div className="sp-signal-card-type">Primary</div><div className="sp-signal-card-field">Body</div><div className="sp-signal-card-boost">{sp.top.semBoost}</div></div></div><table className="sp-boost-table"><thead><tr><th>Field</th><th>Boost Rule</th><th>Value</th></tr></thead><tbody><tr><td>boost_0042</td><td>+164%</td><td>IT HW Req</td></tr><tr><td>boost_0043</td><td>-10%</td><td>IT HW Req</td></tr></tbody></table><div style={{fontSize:11,color:'var(--text-secondary)',marginBottom:4}}>Boost type: Up-boost · Boost score: +1536</div><div style={{display:'flex',gap:8,margin:'12px 0 8px'}}><div style={{fontSize:11,padding:'3px 8px',background:'var(--bg-tag-gray)',borderRadius:'var(--radius-sm)'}}>Keyword model</div><div style={{fontSize:11,padding:'3px 8px',background:'var(--bg-tag-gray)',borderRadius:'var(--radius-sm)'}}>Semantic model</div></div><table className="sp-contribution-table"><thead><tr><th>Signal</th><th>% Contribution</th></tr></thead><tbody><tr><td>Body</td><td>98.07%</td></tr><tr><td>Body_2</td><td>1.93%</td></tr></tbody></table></div>}</div>
+        </div>
+      </div>
+      <div className="sp-detail" style={{paddingBottom:60}}>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Query</div><div className="sp-detail-row"><span className="sp-detail-row-label">Query entered:</span><span className="sp-detail-row-value">{dt.qEntered}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Terms detected:</span><span className="sp-detail-row-value">{dt.terms}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Query language:</span><span className="sp-detail-row-value">{dt.qLang}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Terms in query:</span><span className="sp-detail-row-value">{dt.terms}</span></div></div>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Synonym</div><div className="sp-detail-row"><span className="sp-detail-row-label">Applied:</span><span className="sp-detail-row-value">{dt.synApplied}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Term expanded:</span><span className="sp-detail-row-value">{dt.termExp}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Expanded to:</span><span className="sp-detail-row-value">{dt.expTo}</span></div></div>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Spell check</div><div className="sp-detail-row"><span className="sp-detail-row-label">Triggered:</span><span className="sp-detail-row-value">{dt.spellCheck}</span></div></div>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Stopwords</div><div className="sp-detail-row"><span className="sp-detail-row-label">Used:</span><span className="sp-detail-row-value">Yes</span></div></div>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Ranking model</div><div className="sp-detail-row"><span className="sp-detail-row-label">Mode:</span><span className="sp-detail-row-value">{dt.rankMode}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Embedding:</span><span className="sp-detail-row-value">{dt.embed}</span></div></div>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Data sources</div><div className="sp-detail-row"><span className="sp-detail-row-label">Filtered:</span><span className="sp-detail-row-value">{dt.dataSrc}</span></div></div>
+        <div className="sp-detail-section"><div className="sp-detail-section-title">Latency</div><div className="sp-detail-row"><span className="sp-detail-row-label">Pre-process:</span><span className="sp-detail-row-value">{dt.lat.pre}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Search query:</span><span className="sp-detail-row-value">{dt.lat.search}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Genius Result:</span><span className="sp-detail-row-value">{dt.lat.genius}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Security:</span><span className="sp-detail-row-value highlight">{dt.lat.sec}</span></div><div className="sp-detail-row" style={{borderTop:'1px solid var(--border-light)',paddingTop:4,marginTop:4}}><span className="sp-detail-row-label" style={{fontWeight:600}}>Total:</span><span className="sp-detail-row-value" style={{fontWeight:700}}>{dt.lat.total}</span></div></div>
+      </div>
+    </div>
+  </>;
+};
+
+const P1ValidatePreview=({s,d})=>{
+  const submit=()=>{if(s.p1ValQuery.trim())d({type:'P1_VAL_SEARCH',v:s.p1ValQuery});};
+  const showNoResults=s.cs==='P1_VAL_NORESULTS';
+  const showResults=(s.cs==='P1_VAL_RESULTS_FOUND'||s.cs==='P1_VAL_DONE'||s.cs==='P1_VAL_FINAL')&&!!s.p1ValQuery;
+  const showRef=s.refOpen;
+  const sp=DATA.spLaptop;const dt=sp.detail;
+  const q=s.p1ValQuery||'New laptop';
+  return<>
+    <div className="sp-controls">
+      <div className="sp-control-select">Semantic search mode <CDI size={10}/></div>
+      <div className="sp-control-select">Search quality <CDI size={10}/></div>
+      <button style={{border:'1px solid var(--border-medium)',borderRadius:'var(--radius-sm)',padding:'5px 8px',background:'var(--bg-card)',display:'flex',alignItems:'center'}}><FtI size={12}/></button>
+      <div className="sp-search-input"><SrI size={12}/><input placeholder="Try a search query." value={s.p1ValQuery} onChange={e=>d({type:'SET_P1VQ',v:e.target.value})} onKeyDown={e=>{if(e.key==='Enter')submit();}}/>{s.p1ValQuery&&<button style={{color:'var(--text-muted)'}} onClick={()=>d({type:'SET_P1VQ',v:''})}><XI size={10}/></button>}</div>
+      <button className="sp-refresh-btn" onClick={submit}><RfI size={12}/> Search</button>
+    </div>
+    {showResults&&<div className="sp-filter-pills"><span className="sp-filter-pill">Catalog items (1) <button><XI size={8}/></button></span><span className="sp-filter-pill">Active records <button><XI size={8}/></button></span><span className="sp-clear-all">Clear all</span></div>}
+    <div className="sp-layout">
+      {!showResults&&!showNoResults&&<div style={{padding:60,textAlign:'center',color:'var(--text-muted)',fontSize:13,flex:1}}>Type a query above to preview search results for Catalog Items.</div>}
+      {showNoResults&&<div style={{padding:60,textAlign:'center',flex:1}}>
+        <div style={{fontSize:14,fontWeight:600,color:'var(--text-primary)',marginBottom:4}}>No results found</div>
+        <div style={{fontSize:12,color:'var(--text-secondary)'}}>Your search for "{s.p1ValQuery}" did not return any results.</div>
+      </div>}
+      {showResults&&<>
+        {showRef&&<div className="sp-refine"><div className="sp-refine-header">Refine list <button onClick={()=>d({type:'REF',v:false})}><XI size={10}/></button></div><div className="sp-refine-section"><div className="sp-refine-section-title">Source</div><div className="sp-refine-item selected">Catalog items (1)</div><div className="sp-refine-item">Knowledge bases (0+)</div><div className="sp-refine-item">HR Cases (0+)</div></div><div className="sp-refine-section"><div className="sp-refine-section-title">Category</div><div className="sp-refine-item selected">IT Hardware</div><div className="sp-refine-item">Software</div><div className="sp-refine-item">Facilities</div></div><div style={{fontSize:11,color:'var(--blue)',cursor:'pointer'}}>Clear all</div></div>}
+        <div className="sp-results">
+          <div className="sp-results-header">Search results <span className="ep-sources-count">{sp.count}</span></div>
+          <div className="sp-results-subheader">Results for "{q}"</div>
+          <div className="card sp-result-card"><div className="sp-result-badge">{sp.top.type}</div><div className="sp-result-title">{sp.top.title}</div><div className="sp-result-desc">{sp.top.desc}</div><div className="sp-result-updated">Updated {sp.top.updated}</div><div className="sp-result-scores"><span>Final score: <strong>{sp.top.score.toFixed(3)}</strong></span><span>Match type: <strong>{sp.top.match}</strong></span><span>Language: <strong>{sp.top.lang}</strong></span></div><div className="sp-result-sysid">SysID: 3A21CFEE... <button><CpI size={10}/> copy</button></div>
+            <div className="sp-why-ranked"><div className="sp-why-ranked-toggle" onClick={()=>d({type:'WHY',v:!s.whyOpen})}>{s.whyOpen?<CDI size={12}/>:<CRI size={12}/>} Why ranked #1?</div>{s.whyOpen&&<div className="sp-why-content"><div style={{fontSize:12,color:'var(--text-secondary)',marginBottom:12}}>This result ranked first due to strong title match in keyword search and solid body relevance in semantic search.</div><div className="sp-signal-cards"><div className="sp-signal-card"><div className="sp-signal-card-label">Keyword</div><div className="sp-signal-card-type">Primary</div><div className="sp-signal-card-field">Title</div><div className="sp-signal-card-boost">{sp.top.kwBoost}</div></div><div className="sp-signal-card"><div className="sp-signal-card-label">Semantic</div><div className="sp-signal-card-type">Primary</div><div className="sp-signal-card-field">Body</div><div className="sp-signal-card-boost">{sp.top.semBoost}</div></div></div><table className="sp-boost-table"><thead><tr><th>Field</th><th>Boost Rule</th><th>Value</th></tr></thead><tbody><tr><td>boost_0091</td><td>+150%</td><td>Request New Laptop</td></tr><tr><td>boost_0092</td><td>-8%</td><td>Request New Laptop</td></tr></tbody></table><div style={{fontSize:11,color:'var(--text-secondary)',marginBottom:4}}>Boost type: Up-boost · Boost score: +812</div><div style={{display:'flex',gap:8,margin:'12px 0 8px'}}><div style={{fontSize:11,padding:'3px 8px',background:'var(--bg-tag-gray)',borderRadius:'var(--radius-sm)'}}>Keyword model</div><div style={{fontSize:11,padding:'3px 8px',background:'var(--bg-tag-gray)',borderRadius:'var(--radius-sm)'}}>Semantic model</div></div><table className="sp-contribution-table"><thead><tr><th>Signal</th><th>% Contribution</th></tr></thead><tbody><tr><td>Title</td><td>72.40%</td></tr><tr><td>Body</td><td>27.60%</td></tr></tbody></table></div>}</div>
+          </div>
+        </div>
+        <div className="sp-detail" style={{paddingBottom:60}}>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Query</div><div className="sp-detail-row"><span className="sp-detail-row-label">Query entered:</span><span className="sp-detail-row-value">{dt.qEntered}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Terms detected:</span><span className="sp-detail-row-value">{dt.terms}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Query language:</span><span className="sp-detail-row-value">{dt.qLang}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Terms in query:</span><span className="sp-detail-row-value">{dt.terms}</span></div></div>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Synonym</div><div className="sp-detail-row"><span className="sp-detail-row-label">Applied:</span><span className="sp-detail-row-value">{dt.synApplied}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Term expanded:</span><span className="sp-detail-row-value">{dt.termExp}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Expanded to:</span><span className="sp-detail-row-value">{dt.expTo}</span></div></div>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Spell check</div><div className="sp-detail-row"><span className="sp-detail-row-label">Triggered:</span><span className="sp-detail-row-value">{dt.spellCheck}</span></div></div>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Stopwords</div><div className="sp-detail-row"><span className="sp-detail-row-label">Used:</span><span className="sp-detail-row-value">Yes</span></div></div>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Ranking model</div><div className="sp-detail-row"><span className="sp-detail-row-label">Mode:</span><span className="sp-detail-row-value">{dt.rankMode}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Embedding:</span><span className="sp-detail-row-value">{dt.embed}</span></div></div>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Data sources</div><div className="sp-detail-row"><span className="sp-detail-row-label">Filtered:</span><span className="sp-detail-row-value">{dt.dataSrc}</span></div></div>
+          <div className="sp-detail-section"><div className="sp-detail-section-title">Latency</div><div className="sp-detail-row"><span className="sp-detail-row-label">Pre-process:</span><span className="sp-detail-row-value">{dt.lat.pre}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Search query:</span><span className="sp-detail-row-value">{dt.lat.search}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Genius Result:</span><span className="sp-detail-row-value">{dt.lat.genius}</span></div><div className="sp-detail-row"><span className="sp-detail-row-label">Security:</span><span className="sp-detail-row-value highlight">{dt.lat.sec}</span></div><div className="sp-detail-row" style={{borderTop:'1px solid var(--border-light)',paddingTop:4,marginTop:4}}><span className="sp-detail-row-label" style={{fontWeight:600}}>Total:</span><span className="sp-detail-row-value" style={{fontWeight:700}}>{dt.lat.total}</span></div></div>
+        </div>
+      </>}
+    </div>
+  </>;
+};
+
+const SearchPreview=({s,d})=>{
+  const isP1Val=s.scenario===5&&(s.cs||'').startsWith('P1_VAL');
+  const app=DATA.applications.find(a=>a.id===s.selApp)||DATA.applications[0];
+  return<div className="screen-enter" style={{display:'flex',flexDirection:'column',flex:1}}>
+    <div className="top-bar"><button style={{display:'flex',alignItems:'center',color:'var(--green-brand)',cursor:'pointer'}} onClick={()=>d({type:'TOG_O'})}><SI size={16}/></button><div className="breadcrumb"><span className="breadcrumb-link" onClick={()=>d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH})}>Configuration</span><span className="breadcrumb-sep">{'>'}</span><span className="breadcrumb-active">{isP1Val?app.name:'Employee Portal'}</span><CDI size={10}/></div></div>
+    <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border-light)',background:'var(--bg-card)'}}>
+      <div className="ep-header" style={{marginBottom:12}}><span className="ep-title">{isP1Val?app.name:'Employee Portal'}</span><Pill status="active-status"/><span className="ep-modified">Modified 2 days ago</span><button className="ep-open-btn">Open <AUR size={12}/></button></div>
+      <div className="ep-tabs" style={{marginBottom:0}}>
+        <div className="ep-tab" onClick={()=>d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL})}>Sources</div>
+        <div className="ep-tab">Tune Search Results</div>
+        <div className="ep-tab" onClick={()=>{if(isP1Val)d({type:'EP_TAB',v:'Interface'});if(isP1Val)d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});}}>Edit Search Interface</div>
+        <div className="ep-tab active">Review and validate</div>
+      </div>
+    </div>
+    {isP1Val?<P1ValidatePreview s={s} d={d}/>:<SearchPreviewContent s={s} d={d}/>}
+  </div>;
+};
+
+const DemoBar=({s,d})=>{
+  const isP1=s.scenario===5&&s.cs==='P1_APP';
+  const isP2=s.scenario===5&&s.cs==='P2_APP';
+  const isP3=s.scenario===5&&s.cs==='P3_CHECK';
+  return(
+  <div className="demo-bar">
+    <span className="demo-bar-label">AI Search Demo</span>
+    <button className={`demo-bar-btn ${isP1?'active':''}`} onClick={()=>{d({type:'SCEN',v:5,cs:'P1_APP'});d({type:'SCR',v:SCREENS.CONFIGURE_SEARCH});}}>Path 1: Setup</button>
+    <button className={`demo-bar-btn ${isP2?'active':''}`} onClick={()=>{d({type:'SCEN',v:5,cs:'P2_APP'});d({type:'SEL_APP',v:'it-self-service'});d({type:'SCR',v:SCREENS.EMPLOYEE_PORTAL});}}>Path 2: Validate</button>
+    <button className={`demo-bar-btn ${isP3?'active':''}`} onClick={()=>{d({type:'SCEN',v:5,cs:'P3_CHECK'});d({type:'SCR',v:SCREENS.SYSTEM_HEALTH});}}>Path 3: System Health</button>
+    <button className="demo-bar-btn reset" onClick={()=>d({type:'RESET'})}>Reset</button>
+  </div>
+  );
+};
+
+const App=()=>{
+  const[s,d]=useReducer(red,init);
+  const scr=()=>{switch(s.currentScreen){
+    case SCREENS.LANDING:return<Landing s={s} d={d}/>;
+    case SCREENS.CONFIGURE_SEARCH:return<ConfigSearch s={s} d={d}/>;
+    case SCREENS.EMPLOYEE_PORTAL:return<AppDetail s={s} d={d}/>;
+    case SCREENS.SYSTEM_HEALTH:return<SysHealth s={s} d={d}/>;
+    case SCREENS.SEARCH_PREVIEW:return<SearchPreview s={s} d={d}/>;
+    default:return<Landing s={s} d={d}/>;
+  }};
+  return<>
+    <div style={{display:'flex',height:'100vh',width:'100vw',overflow:'hidden',paddingBottom:40}}>
+      <LeftNav d={d} cs={s.currentScreen}/>
+      <div style={{display:'flex',flex:1,minWidth:0,height:'100%'}}>
+        <Otto state={s} d={d}/>
+        <div className={`main-content ${s.ottoOpen?'otto-open':''}`}>{scr()}</div>
+      </div>
+    </div>
+    <DemoBar s={s} d={d}/>
+  </>;
+};
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+
+</script>
+</body>
+</html>
